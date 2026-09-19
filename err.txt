@@ -1,73 +1,123 @@
-=== Diagnostics Report ===
-Generated: 2026-09-19 22:51:56
+Run tasks : [:app:assembleDebug]
+Warning: Unable to set daemon's environment variables to match the client because: 
+There is no native integration with this operating environment.
+If the daemon was started with a significantly different environment from the client, and your build 
+relies on environment variables, you may experience unexpected behavior.
+Code On the Go clean logs of gradle (9.6.1) task running....
 
---- MainActivity.kt (16 errors, 0 warnings) ---
-Path: /storage/emulated/0/CodeOnTheGoProjects/Where is my Money/app/src/main/java/com/whereismy/money/MainActivity.kt
+> Configure project :app
+Add android.sync.suppressAgpWarnings=UNSUPPORTED_PROJECT_OPTION_USE to the gradle.properties file to suppress this warning.
+Adding LogSender dependency to variant 'debug' of project ':app'
 
-  [ERROR] Line 25:9
-    Unresolved reference 'binding'.
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preDebugBuild UP-TO-DATE
+> Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+> Task :app:dataBindingMergeDependencyArtifactsDebug UP-TO-DATE
+> Task :app:generateDebugResources UP-TO-DATE
+> Task :app:mergeDebugResources UP-TO-DATE
+> Task :app:packageDebugResources UP-TO-DATE
+> Task :app:processDebugNavigationResources UP-TO-DATE
+> Task :app:parseDebugLocalResources UP-TO-DATE
+> Task :app:dataBindingGenBaseClassesDebug UP-TO-DATE
+> Task :app:generateDebugBuildConfig UP-TO-DATE
+> Task :app:generateDebugRFile UP-TO-DATE
+> Task :app:javaPreCompileDebug UP-TO-DATE
+> Task :app:generateDebugAssets UP-TO-DATE
+> Task :app:mergeDebugAssets UP-TO-DATE
+> Task :app:compressDebugAssets UP-TO-DATE
+> Task :app:generateDebugGlobalSynthetics UP-TO-DATE
+> Task :app:desugarDebugFileDependencies UP-TO-DATE
+> Task :app:checkDebugDuplicateClasses FAILED
+> Task :app:checkDebugAarMetadata UP-TO-DATE
 
-  [ERROR] Line 25:47
-    Unresolved reference 'layoutInflater'.
+> Task :app:compileDebugKotlin
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:41:17 Cannot infer type for type parameter 'R'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:41:46 Unresolved reference 'auth'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:42:22 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:42:32 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:43:22 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:52:28 Unresolved reference 'auth'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:69:13 Cannot infer type for type parameter 'R'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:71:36 Unresolved reference 'auth'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:72:30 Unresolved reference 'email'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:73:30 Unresolved reference 'password'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:76:36 Unresolved reference 'auth'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:77:30 Unresolved reference 'email'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:78:30 Unresolved reference 'password'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:81:15 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:81:25 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:82:36 Unresolved reference 'auth'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:87:15 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:126:13 Cannot infer type for type parameter 'R'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:127:32 Unresolved reference 'from'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:130:15 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:130:27 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:134:65 Cannot infer type for value parameter 'workspace'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:135:38 Unresolved reference 'name'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:135:57 Unresolved reference 'workspace_type'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:138:15 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:153:13 Cannot infer type for type parameter 'R'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:157:32 Unresolved reference 'postgrest'.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:166:15 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:166:25 Cannot infer type for type parameter 'T'. Specify it explicitly.
+e: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/app/src/main/java/com/whereismy/money/ui/home/HomeFragment.kt:170:15 Cannot infer type for type parameter 'T'. Specify it explicitly.
 
-  [ERROR] Line 26:24
-    Unresolved reference 'binding'.
+> Task :app:compileDebugKotlin FAILED
 
-  [ERROR] Line 26:9
-    Unresolved reference 'setContentView'.
+[Incubating] Problems report is available at: file:///storage/emulated/0/CodeOnTheGoProjects/Where%20is%20my%20Money/build/reports/problems/problems-report.html
 
-  [ERROR] Line 28:29
-    Unresolved reference 'binding'.
+FAILURE: Build completed with 2 failures.
 
-  [ERROR] Line 28:9
-    Unresolved reference 'setSupportActionBar'.
+1: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:checkDebugDuplicateClasses' (registered by plugin 'com.android.internal.application').
+> A failure occurred while executing com.android.build.gradle.internal.tasks.CheckDuplicatesRunnable
+> Duplicate class androidx.lifecycle.DispatchQueue found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.LifecycleController found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.LifecycleCoroutineScope found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.LifecycleCoroutineScope$launchWhenCreated$1 found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.LifecycleCoroutineScope$launchWhenResumed$1 found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.LifecycleCoroutineScope$launchWhenStarted$1 found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.LifecycleCoroutineScopeImpl found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.LifecycleCoroutineScopeImpl$register$1 found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.LifecycleDestroyedException found in modules lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1) and lifecycle-runtime.aar -> lifecycle-runtime-runtime (androidx.lifecycle:lifecycle-runtime-android:2.10.0)
+Duplicate class androidx.lifecycle.LifecycleKt found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.LifecycleOwnerKt found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.PausingDispatcher found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.PausingDispatcherKt found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.PausingDispatcherKt$whenStateAtLeast$2 found in modules lifecycle-common-jvm-2.10.0.jar -> lifecycle-common-jvm-2.10.0 (androidx.lifecycle:lifecycle-common-jvm:2.10.0) and lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1)
+Duplicate class androidx.lifecycle.ViewKt found in modules lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1) and lifecycle-runtime.aar -> lifecycle-runtime-runtime (androidx.lifecycle:lifecycle-runtime-android:2.10.0)
+Duplicate class androidx.lifecycle.WithLifecycleStateKt found in modules lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1) and lifecycle-runtime.aar -> lifecycle-runtime-runtime (androidx.lifecycle:lifecycle-runtime-android:2.10.0)
+Duplicate class androidx.lifecycle.WithLifecycleStateKt$withStateAtLeastUnchecked$2 found in modules lifecycle-runtime-ktx-2.3.1.aar -> lifecycle-runtime-ktx-2.3.1-runtime (androidx.lifecycle:lifecycle-runtime-ktx:2.3.1) and lifecycle-runtime.aar -> lifecycle-runtime-runtime (androidx.lifecycle:lifecycle-runtime-android:2.10.0)
 
-  [ERROR] Line 30:9
-    Unresolved reference 'binding'.
+Learn how to fix dependency resolution errors at https://d.android.com/r/tools/classpath-sync-errors
 
-  [ERROR] Line 30:53
-    Cannot infer type for value parameter 'view'. Specify it explicitly.
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
 
-  [ERROR] Line 35:29
-    None of the following candidates is applicable:
+2: Task failed with an exception.
+-----------
+* What went wrong:
+Execution failed for task ':app:compileDebugKotlin' (registered by plugin 'com.android.internal.application').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+> Compilation error. See log for more details
 
-fun Activity.findNavController(viewId: Int): NavController:
-  Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
-fun Activity.findNavController(viewId: Int): NavController
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+==============================================================================
 
-fun View.findNavController(): NavController:
-  Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
-fun View.findNavController(): NavController
 
-  [ERROR] Line 39:9
-    Unresolved reference 'appBarConfiguration'.
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
 
-  [ERROR] Line 42:16
-    Unresolved reference 'binding'.
+For more on this, please refer to https://docs.gradle.org/9.6.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
 
-  [ERROR] Line 45:56
-    Unresolved reference 'appBarConfiguration'.
-
-  [ERROR] Line 46:9
-    Unresolved reference 'binding'.
-
-  [ERROR] Line 51:9
-    Unresolved reference 'menuInflater'.
-
-  [ERROR] Line 56:29
-    None of the following candidates is applicable:
-
-fun Activity.findNavController(viewId: Int): NavController:
-  Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
-fun Activity.findNavController(viewId: Int): NavController
-
-fun View.findNavController(): NavController:
-  Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
-fun View.findNavController(): NavController
-
-  [ERROR] Line 57:41
-    Unresolved reference 'appBarConfiguration'.
-
-=== Summary ===
-Total: 16 errors, 0 warnings
-Files: 1
+BUILD FAILED in 12s
+17 actionable tasks: 2 executed, 15 up-to-date
