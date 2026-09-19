@@ -32,7 +32,11 @@ if (localPropsFile.exists()) {
 }
 
 fun buildConfigString(name: String): String {
-    val value = localProps.getProperty(name, "")
+    val value = localProps.getProperty(name)?.trim()
+        ?: error("Missing $name in local.properties. Copy local.properties.example and add the Supabase values.")
+    require(value.isNotEmpty()) {
+        "$name in local.properties must not be empty."
+    }
     return "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
 }
 
