@@ -1,3 +1,25 @@
-Unexpected JSON token at offset 173: Expected quotation mark ", but had '3' instead at path: $[0].starting_balance JSON input: .....ncy":"PHP","starting_balance":30000.00,"is_
+Could not find the function public.create_expense(requested_account, requested_amount, requested_category, requested_note, requested_transaction_date, requested_workspace) in the schema cache
 
-active":true, "own.....
+Code: PGRST202
+
+Hint: Perhaps you meant to call the function
+
+public.create_workspace
+
+Details: "Searched for the function public.create_expense with parameters requested_account, requested_amount, requested_category, requested_note,
+
+requested_transaction_date, requested_workspace or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache."
+
+URL: https://bb.../rest/v1/rpc/create_expense
+
+Headers: {Authorization=[Bearer ey... (len=931)], Content-Profile=[public], Accept=[application/
+
+json], Prefer=[, apikey=[sb... (len=46)],
+
+X-Client-Info=[supabase-kt/3.8.0; platform=Android;
+
+platform-version=16; runtime=kotlin;
+
+runtime-version=2.3.21]}
+
+Http Method: POST
