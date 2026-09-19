@@ -173,9 +173,16 @@ class HomeFragment : Fragment() {
                     .select()
                     .decodeList<Debt>()
                     .filter { it.status != "cancelled" }
-                workspaceId to (accounts to debts)
+                val currency = supabaseClient.from("workspaces")
+                    .select()
+                    .decodeList<Workspace>()
+                    .firstOrNull { it.id == workspaceId }
+                    ?.base_currency
+                    ?: "PHP"
+                workspaceId to (accounts to debts) to currency
             }.onSuccess { (workspaceId, payload) ->
-                val (accounts, debts) = payload
+                val (accounts, debts) = payload.first
+                val currency = payload.second
                 val accountBalances = accounts.map { account ->
                     DashboardSummaryCalculator.accountBalance(
                         startingBalance = BigDecimal(account.starting_balance.jsonPrimitive.content),
@@ -197,26 +204,15 @@ class HomeFragment : Fragment() {
                             }
                         )
                         append("\n\n")
-                        append("Total Cash: ${workspaceCurrency(workspaceId)} $totalCash\n")
-                        append("Total Debts: ${workspaceCurrency(workspaceId)} $totalDebts\n")
-                        append("Net Worth: ${workspaceCurrency(workspaceId)} $netWorth")
+                        append("Total Cash: $currency $totalCash\n")
+                        append("Total Debts: $currency $totalDebts\n")
+                        append("Net Worth: $currency $netWorth")
                     }
                 }
             }.onFailure {
                 showError(it)
             }
         }
-    }
-
-    private fun workspaceCurrency(workspaceId: String): String {
-        return runCatching {
-            supabaseClient.from("workspaces")
-                .select()
-                .decodeList<Workspace>()
-                .firstOrNull { it.id == workspaceId }
-                ?.base_currency
-                ?: "PHP"
-        }.getOrElse { "PHP" }
     }
 
     private fun createFinancialAccount() {
