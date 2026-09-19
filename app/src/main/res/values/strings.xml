@@ -22,6 +22,7 @@
     <string name="expense_category">Expense category</string>
     <string name="expense_amount">Amount (PHP)</string>
     <string name="expense_note">Note (optional)</string>
+    <string name="expense_date">Expense date</string>
     <string name="create_expense">Save expense</string>
     <string name="expense_category_required">Enter an expense category.</string>
     <string name="invalid_expense_amount">Enter an amount greater than zero.</string>
@@ -36,6 +37,7 @@
     <string name="debt_interest">Total interest (PHP)</string>
     <string name="debt_fee">Total fees (PHP)</string>
     <string name="debt_months">Number of months</string>
+    <string name="debt_start_date">Start date</string>
     <string name="create_debt">Create debt schedule</string>
     <string name="debt_title_required">Enter a debt title.</string>
     <string name="invalid_debt_amount">Enter valid non-negative amounts.</string>

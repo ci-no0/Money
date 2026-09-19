@@ -1,5 +1,6 @@
 package com.whereismy.money.ui.transactions
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -34,6 +35,8 @@ class TransactionFragment : Fragment() {
     ): View {
         _binding = FragmentTransactionBinding.inflate(inflater, container, false)
         binding.createExpenseButton.setOnClickListener { createExpense() }
+        binding.expenseDateInput.setText(LocalDate.now().toString())
+        binding.expenseDateInput.setOnClickListener { showExpenseDatePicker() }
         loadWorkspaceAndAccounts()
         return binding.root
     }
@@ -71,6 +74,21 @@ class TransactionFragment : Fragment() {
         }
     }
 
+    private fun showExpenseDatePicker() {
+        val selectedDate = binding.expenseDateInput.text.toString().trim().ifBlank { LocalDate.now().toString() }
+        val parsed = runCatching { LocalDate.parse(selectedDate) }.getOrDefault(LocalDate.now())
+        DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                val picked = LocalDate.of(year, month + 1, dayOfMonth)
+                binding.expenseDateInput.setText(picked.toString())
+            },
+            parsed.year,
+            parsed.monthValue - 1,
+            parsed.dayOfMonth,
+        ).show()
+    }
+
     private fun createExpense() {
         val workspaceId = activeWorkspaceId
         val selectedAccount = accounts.getOrNull(binding.accountSpinner.selectedItemPosition)
@@ -78,6 +96,7 @@ class TransactionFragment : Fragment() {
         val amountText = binding.expenseAmountInput.text.toString().trim()
         val amount = runCatching { BigDecimal(amountText) }.getOrNull()
         val note = binding.expenseNoteInput.text.toString().trim()
+        val transactionDate = binding.expenseDateInput.text.toString().trim().ifBlank { LocalDate.now().toString() }
 
         if (workspaceId == null || selectedAccount == null) {
             binding.transactionStatus.setText(R.string.no_accounts_for_transaction)
@@ -103,7 +122,7 @@ class TransactionFragment : Fragment() {
                         put("requested_category", category)
                         put("requested_amount", amount.toPlainString())
                         put("requested_note", note.ifBlank { null })
-                        put("requested_transaction_date", LocalDate.now().toString())
+                        put("requested_transaction_date", transactionDate)
                     },
                 )
             }.onSuccess {

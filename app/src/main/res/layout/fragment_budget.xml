@@ -61,8 +61,10 @@
             android:id="@+id/budget_month_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Month (YYYY-MM-DD optional)"
-            android:inputType="date" />
+            android:hint="Budget month"
+            android:focusable="false"
+            android:clickable="true"
+            android:inputType="none" />
 
         <Button
             android:id="@+id/create_budget_button"

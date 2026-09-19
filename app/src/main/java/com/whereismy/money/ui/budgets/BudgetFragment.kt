@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.app.DatePickerDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.whereismy.money.R
@@ -33,6 +34,8 @@ class BudgetFragment : Fragment() {
     ): View {
         _binding = FragmentBudgetBinding.inflate(inflater, container, false)
         binding.createBudgetButton.setOnClickListener { createBudget() }
+        binding.budgetMonthInput.setText(LocalDate.now().toString())
+        binding.budgetMonthInput.setOnClickListener { showBudgetDatePicker() }
         loadWorkspaceAndBudgets()
         return binding.root
     }
@@ -91,13 +94,28 @@ class BudgetFragment : Fragment() {
         }
     }
 
+    private fun showBudgetDatePicker() {
+        val selectedDate = binding.budgetMonthInput.text.toString().trim().ifBlank { LocalDate.now().toString() }
+        val parsed = runCatching { LocalDate.parse(selectedDate) }.getOrDefault(LocalDate.now())
+        DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                val picked = LocalDate.of(year, month + 1, dayOfMonth)
+                binding.budgetMonthInput.setText(picked.toString())
+            },
+            parsed.year,
+            parsed.monthValue - 1,
+            parsed.dayOfMonth,
+        ).show()
+    }
+
     private fun createBudget() {
         val workspaceId = activeWorkspaceId
         val name = binding.budgetNameInput.text.toString().trim()
         val category = binding.budgetCategoryInput.text.toString().trim()
         val amountText = binding.budgetAmountInput.text.toString().trim()
         val amount = runCatching { BigDecimal(amountText) }.getOrNull()
-        val month = binding.budgetMonthInput.text.toString().trim()
+        val month = binding.budgetMonthInput.text.toString().trim().ifBlank { LocalDate.now().toString() }
 
         if (workspaceId == null) {
             binding.budgetStatus.text = getString(R.string.workspace_required)

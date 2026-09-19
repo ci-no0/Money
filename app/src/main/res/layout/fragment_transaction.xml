@@ -49,6 +49,16 @@
             android:hint="@string/expense_note"
             android:inputType="textCapSentences|textMultiLine" />
 
+        <EditText
+            android:id="@+id/expense_date_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:hint="@string/expense_date"
+            android:focusable="false"
+            android:clickable="true"
+            android:inputType="none" />
+
         <Button
             android:id="@+id/create_expense_button"
             android:layout_width="match_parent"

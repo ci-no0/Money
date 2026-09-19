@@ -37,5 +37,20 @@
             android:text="Security\nAccount access, audit log, and data protection."
             android:textAppearance="?attr/textAppearanceBodyLarge" />
 
+        <TextView
+            android:id="@+id/settings_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textStyle="italic" />
+
+        <TextView
+            android:id="@+id/settings_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium" />
+
     </LinearLayout>
 </ScrollView>

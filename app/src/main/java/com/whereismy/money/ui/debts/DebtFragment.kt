@@ -1,5 +1,6 @@
 package com.whereismy.money.ui.debts
 
+import android.app.DatePickerDialog
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -42,6 +43,8 @@ class DebtFragment : Fragment() {
         binding.createPaymentButton.setOnClickListener { createPayment() }
         binding.postReceiptButton.setOnClickListener { postReceipt() }
         binding.reversePaymentButton.setOnClickListener { reversePayment() }
+        binding.debtStartDateInput.setText(LocalDate.now().toString())
+        binding.debtStartDateInput.setOnClickListener { showDebtStartDatePicker() }
         loadWorkspaceAndDebts()
         return binding.root
     }
@@ -203,6 +206,21 @@ class DebtFragment : Fragment() {
         }
     }
 
+    private fun showDebtStartDatePicker() {
+        val selectedDate = binding.debtStartDateInput.text.toString().trim().ifBlank { LocalDate.now().toString() }
+        val parsed = runCatching { LocalDate.parse(selectedDate) }.getOrDefault(LocalDate.now())
+        DatePickerDialog(
+            requireContext(),
+            { _, year, month, dayOfMonth ->
+                val picked = LocalDate.of(year, month + 1, dayOfMonth)
+                binding.debtStartDateInput.setText(picked.toString())
+            },
+            parsed.year,
+            parsed.monthValue - 1,
+            parsed.dayOfMonth,
+        ).show()
+    }
+
     private fun createDebt() {
         val workspaceId = activeWorkspaceId
         val title = binding.debtTitleInput.text.toString().trim()
@@ -210,6 +228,7 @@ class DebtFragment : Fragment() {
         val interest = parseAmount(binding.debtInterestInput.text.toString()) ?: BigDecimal.ZERO
         val fee = parseAmount(binding.debtFeeInput.text.toString()) ?: BigDecimal.ZERO
         val months = binding.debtMonthsInput.text.toString().trim().toIntOrNull()
+        val startDate = binding.debtStartDateInput.text.toString().trim().ifBlank { LocalDate.now().toString() }
 
         if (workspaceId == null || title.isBlank()) {
             binding.debtStatus.setText(R.string.debt_title_required)
@@ -237,7 +256,7 @@ class DebtFragment : Fragment() {
                         put("requested_interest", interest.toPlainString())
                         put("requested_fee", fee.toPlainString())
                         put("requested_months", months)
-                        put("requested_start_date", LocalDate.now().toString())
+                        put("requested_start_date", startDate)
                     },
                 )
             }.onSuccess {
