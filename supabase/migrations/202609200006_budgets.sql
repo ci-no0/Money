@@ -1,6 +1,14 @@
 -- Budget tracking for monthly category limits.
 -- Run after the expense categories migration and the dashboard summary migration.
 
+-- Re-runnable migration support: drop existing objects from earlier attempts first.
+drop policy if exists budgets_select on public.budgets;
+drop policy if exists budgets_insert on public.budgets;
+drop policy if exists budgets_update on public.budgets;
+drop function if exists public.get_workspace_budget_overview(uuid);
+drop function if exists public.create_budget(uuid, text, text, numeric, date);
+drop table if exists public.budgets cascade;
+
 create table public.budgets (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
