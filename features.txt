@@ -158,7 +158,10 @@ Implementation status:
 - Debt creation validates workspace permission and creates a server-generated installment schedule.
 - The schedule total equals principal plus interest plus fees using exact PostgreSQL numeric arithmetic.
 - The final installment receives the rounding remainder instead of using floating-point division.
-- Debt payment posting, partial allocation, and liability/receivable ledger effects remain a separate mutation and must not be simulated by editing schedule rows directly.
+- Debt payment posting now uses a separate server mutation with oldest-installment-first allocation.
+- Partial payments update installment status and preserve principal, interest, and fee allocation history.
+- Payment ledger entries distinguish payable debt reduction from receivable collection and interest/fee effects.
+- Initial debt receipt or loan funding, payment reversal, and overpayment handling remain separate mutations and must not be simulated by editing schedule rows directly.
 
 ---
 

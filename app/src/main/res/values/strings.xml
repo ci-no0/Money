@@ -41,6 +41,12 @@
     <string name="invalid_debt_amount">Enter valid non-negative amounts.</string>
     <string name="invalid_debt_months">Months must be between 1 and 600.</string>
     <string name="debt_created">Debt created with an exact installment schedule.</string>
+    <string name="make_payment">Record debt payment</string>
+    <string name="payment_amount">Payment amount (PHP)</string>
+    <string name="save_payment">Save payment</string>
+    <string name="payment_requires_debt_account">Select a debt and financial account first.</string>
+    <string name="invalid_payment_amount">Enter a payment amount greater than zero.</string>
+    <string name="payment_created">Payment saved and allocated to the installment schedule.</string>
     <string-array name="debt_directions">
         <item>Payable</item>
         <item>Receivable</item>

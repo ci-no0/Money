@@ -8,9 +8,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.whereismy.money.R
 import com.whereismy.money.data.Debt
+import com.whereismy.money.data.FinancialAccount
 import com.whereismy.money.data.Workspace
 import com.whereismy.money.databinding.FragmentDebtBinding
 import com.whereismy.money.supabaseClient
+import android.widget.ArrayAdapter
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.launch
@@ -25,6 +27,8 @@ class DebtFragment : Fragment() {
     private var _binding: FragmentDebtBinding? = null
     private val binding get() = _binding!!
     private var activeWorkspaceId: String? = null
+    private var debts: List<Debt> = emptyList()
+    private var accounts: List<FinancialAccount> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,6 +37,7 @@ class DebtFragment : Fragment() {
     ): View {
         _binding = FragmentDebtBinding.inflate(inflater, container, false)
         binding.createDebtButton.setOnClickListener { createDebt() }
+        binding.createPaymentButton.setOnClickListener { createPayment() }
         loadWorkspaceAndDebts()
         return binding.root
     }
@@ -46,9 +51,14 @@ class DebtFragment : Fragment() {
                     ?: error(getString(R.string.workspace_required))
                 val debts = supabaseClient.from("debts")
                     .select().decodeList<Debt>()
-                workspace.id to debts.filterNot { it.status == "cancelled" }
-            }.onSuccess { (workspaceId, debts) ->
+                val accounts = supabaseClient.from("financial_accounts")
+                    .select().decodeList<FinancialAccount>()
+                    .filter { it.workspace_id == workspace.id && it.is_active }
+                Triple(workspace.id, debts.filterNot { it.status == "cancelled" }, accounts)
+            }.onSuccess { (workspaceId, loadedDebts, loadedAccounts) ->
                 activeWorkspaceId = workspaceId
+                debts = loadedDebts
+                accounts = loadedAccounts
                 binding.debtList.text = if (debts.isEmpty()) {
                     getString(R.string.no_debts)
                 } else {
@@ -56,8 +66,53 @@ class DebtFragment : Fragment() {
                         "${it.title}: ${it.currency} ${it.total_payable.jsonPrimitive.content} (${it.status})"
                     }
                 }
+                binding.paymentDebtSpinner.adapter = ArrayAdapter(
+                    requireContext(), android.R.layout.simple_spinner_dropdown_item,
+                    debts.map { "${it.title} (${it.currency} ${it.total_payable.jsonPrimitive.content})" },
+                )
+                binding.paymentAccountSpinner.adapter = ArrayAdapter(
+                    requireContext(), android.R.layout.simple_spinner_dropdown_item,
+                    accounts.map { "${it.name} (${it.currency})" },
+                )
+                binding.createPaymentButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
                 binding.debtStatus.setText(R.string.debt_ready)
             }.onFailure { showError(it) }
+        }
+    }
+
+    private fun createPayment() {
+        val workspaceId = activeWorkspaceId
+        val debt = debts.getOrNull(binding.paymentDebtSpinner.selectedItemPosition)
+        val account = accounts.getOrNull(binding.paymentAccountSpinner.selectedItemPosition)
+        val amount = parseAmount(binding.paymentAmountInput.text.toString())
+
+        if (workspaceId == null || debt == null || account == null) {
+            binding.debtStatus.setText(R.string.payment_requires_debt_account)
+            return
+        }
+        if (amount == null || amount.signum() <= 0) {
+            binding.debtStatus.setText(R.string.invalid_payment_amount)
+            return
+        }
+
+        binding.createPaymentButton.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            runCatching {
+                supabaseClient.postgrest.rpc(
+                    "create_debt_payment",
+                    parameters = buildJsonObject {
+                        put("requested_workspace", workspaceId)
+                        put("requested_debt", debt.id)
+                        put("requested_account", account.id)
+                        put("requested_amount", amount.toPlainString())
+                    },
+                )
+            }.onSuccess {
+                binding.paymentAmountInput.text.clear()
+                binding.debtStatus.setText(R.string.payment_created)
+                loadWorkspaceAndDebts()
+            }.onFailure { showError(it) }
+            binding.createPaymentButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
         }
     }
 
@@ -117,6 +172,7 @@ class DebtFragment : Fragment() {
     private fun showError(error: Throwable) {
         binding.debtStatus.text = error.message ?: getString(R.string.debt_error)
         binding.createDebtButton.isEnabled = true
+        binding.createPaymentButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
     }
 
     override fun onDestroyView() {
