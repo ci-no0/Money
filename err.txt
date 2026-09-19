@@ -1,5 +1,17 @@
-column reference "required_amount" is ambiguous Code: 42702 Hint: null
+Debt receipt has already been posted
 
-Details: "It could refer to either a PL/pgSQL variable or a table column."
+Code: P0001
 
-URL: https://bb.../rest/v1/rpc/create_debt_payment Headers: {Authorization=[Bearer ey... (len=931)], Content-Profile=[public], Accept=[application/ json], Prefer=[, apikey=[sb... (len=46)], X-Client-Info=[supabase-kt/3.8.0; platform=Android; platform-version=16; runtime=kotlin; runtime-version=2.3.21]} Http Method: POST
+Hint: null
+
+Details: null
+
+URL: https://bb.../rest/v1/rpc/post_debt_receipt Headers: {Authorization=[Bearer ey... (len=931)], Content-Profile=[public], Accept=[application/ json], Prefer=[, apikey=[sb... (len=46)],
+
+X-Client-Info=[supabase-kt/3.8.0; platform=Android;
+
+platform-version=16; runtime=kotlin;
+
+runtime-version=2.3.21]}
+
+Http Method: POST
