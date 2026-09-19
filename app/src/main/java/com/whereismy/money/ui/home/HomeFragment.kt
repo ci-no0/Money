@@ -170,6 +170,28 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun parseDashboardSummary(response: Any?): Map<String, Any?> {
+        val rows = when (response) {
+            is List<*> -> response
+            is Map<*, *> -> listOf(response)
+            else -> emptyList<Any?>()
+        }
+        val first = rows.firstOrNull() as? Map<*, *> ?: error("Dashboard summary is empty")
+        return first.entries.associate { (key, value) ->
+            key.toString() to value
+        }
+    }
+
+    private fun parseNumericValue(value: Any?, fallback: BigDecimal = BigDecimal.ZERO): BigDecimal {
+        val raw = when (value) {
+            is Number -> value.toString()
+            is String -> value
+            is Map<*, *> -> value.values.firstOrNull()?.toString() ?: fallback.toPlainString()
+            else -> value?.toString() ?: fallback.toPlainString()
+        }
+        return runCatching { BigDecimal(raw) }.getOrDefault(fallback)
+    }
+
     private fun loadFinancialAccounts() {
         binding.accountList.setText(R.string.account_loading)
         viewLifecycleOwner.lifecycleScope.launch {
@@ -182,8 +204,7 @@ class HomeFragment : Fragment() {
                         put("requested_workspace", workspaceId)
                     },
                 )
-                val summaryRows = summary as? List<*> ?: error("Dashboard summary is unavailable")
-                val first = summaryRows.firstOrNull() as? Map<*, *> ?: error("Dashboard summary is empty")
+                val summaryRow = parseDashboardSummary(summary)
                 val currency = supabaseClient.from("workspaces")
                     .select()
                     .decodeList<Workspace>()
@@ -194,11 +215,11 @@ class HomeFragment : Fragment() {
                     .select()
                     .decodeList<FinancialAccount>()
                     .filter { it.workspace_id == workspaceId && it.is_active }
-                val totalCash = BigDecimal(first["total_cash"].toString())
-                val totalDebts = BigDecimal(first["total_debts"].toString())
-                val totalExpenses = BigDecimal(first["total_expenses"].toString())
-                val netWorth = BigDecimal(first["net_worth"].toString())
-                val cashFlow = BigDecimal(first["cash_flow"].toString())
+                val totalCash = parseNumericValue(summaryRow["total_cash"])
+                val totalDebts = parseNumericValue(summaryRow["total_debts"])
+                val totalExpenses = parseNumericValue(summaryRow["total_expenses"])
+                val netWorth = parseNumericValue(summaryRow["net_worth"])
+                val cashFlow = parseNumericValue(summaryRow["cash_flow"])
                 Triple(accounts, currency, DashboardTotals(totalCash, totalDebts, totalExpenses, netWorth, cashFlow))
             }.onSuccess { (accounts, currency, totals) ->
                 binding.dashboardTotalCashValue.text = "$currency ${totals.totalCash}"

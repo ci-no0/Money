@@ -62,6 +62,16 @@ class SectionFragment : Fragment() {
         }
     }
 
+    private fun parseDashboardSummary(response: Any?): Map<String, Any?> {
+        val rows = when (response) {
+            is List<*> -> response
+            is Map<*, *> -> listOf(response)
+            else -> emptyList<Any?>()
+        }
+        val first = rows.firstOrNull() as? Map<*, *> ?: error("Dashboard summary is empty")
+        return first.entries.associate { (key, value) -> key.toString() to value }
+    }
+
     private fun loadBudgetOverview() {
         binding.sectionDescription.text = "Loading budget overview..."
         viewLifecycleOwner.lifecycleScope.launch {
@@ -74,7 +84,7 @@ class SectionFragment : Fragment() {
                     "get_workspace_dashboard",
                     parameters = buildJsonObject { put("requested_workspace", workspace.id) },
                 )
-                val first = (dashboard as? List<*>)?.firstOrNull() as? Map<*, *> ?: error("Dashboard summary is empty")
+                val first = parseDashboardSummary(dashboard)
                 "Budget overview\n" +
                     "Workspace: ${workspace.name}\n" +
                     "Total Cash: ${first["total_cash"]}\n" +
@@ -101,7 +111,7 @@ class SectionFragment : Fragment() {
                     "get_workspace_dashboard",
                     parameters = buildJsonObject { put("requested_workspace", workspace.id) },
                 )
-                val first = (dashboard as? List<*>)?.firstOrNull() as? Map<*, *> ?: error("Dashboard summary is empty")
+                val first = parseDashboardSummary(dashboard)
                 "Profit & Reports\n" +
                     "Workspace: ${workspace.name}\n" +
                     "Total Expenses: ${first["total_expenses"]}\n" +
@@ -128,7 +138,7 @@ class SectionFragment : Fragment() {
                     "get_workspace_dashboard",
                     parameters = buildJsonObject { put("requested_workspace", workspace.id) },
                 )
-                val first = (dashboard as? List<*>)?.firstOrNull() as? Map<*, *> ?: error("Dashboard summary is empty")
+                val first = parseDashboardSummary(dashboard)
                 "Business overview\n" +
                     "Workspace: ${workspace.name} (${workspace.workspace_type})\n" +
                     "Cash: ${first["total_cash"]}\n" +
