@@ -1,1 +1,11 @@
-aa
+column reference "budget_name" is ambiguous Code: 42702
+
+Hint: null
+
+Details: "It could refer to either a PL/pgSQL variable or a table column."
+
+URL: https://bb.../rest/v1/rpc/get_workspace_budget
+
+_overview
+
+Headers: {Authorization=[Bearer ey... (len=931)], Content-Profile=[public], Accept=[application/ json], Prefer=[], apikey=[sb... (len=46)], X-Client-Info=[supabase-kt/3.8.0; platform=Android; platform-version=16; runtime=kotlin; runtime-version=2.3.21]} Http Method: POST
