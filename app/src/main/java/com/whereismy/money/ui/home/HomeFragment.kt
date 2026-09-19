@@ -7,20 +7,21 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.whereismy.money.R
+import com.whereismy.money.dashboard.DashboardSummaryCalculator
+import com.whereismy.money.data.Debt
 import com.whereismy.money.data.FinancialAccount
 import com.whereismy.money.data.Workspace
+import com.whereismy.money.databinding.FragmentHomeBinding
 import com.whereismy.money.supabaseClient
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import kotlinx.coroutines.launch
 import java.math.BigDecimal
-
-import com.whereismy.money.databinding.FragmentHomeBinding
 
 class HomeFragment : Fragment() {
 
@@ -162,21 +163,60 @@ class HomeFragment : Fragment() {
         binding.accountList.setText(R.string.account_loading)
         viewLifecycleOwner.lifecycleScope.launch {
             runCatching {
-                supabaseClient.from("financial_accounts")
+                val workspaceId = activeWorkspaceId
+                    ?: error(getString(R.string.workspace_required))
+                val accounts = supabaseClient.from("financial_accounts")
                     .select()
                     .decodeList<FinancialAccount>()
-            }.onSuccess { accounts ->
+                    .filter { it.workspace_id == workspaceId && it.is_active }
+                val debts = supabaseClient.from("debts")
+                    .select()
+                    .decodeList<Debt>()
+                    .filter { it.status != "cancelled" }
+                workspaceId to (accounts to debts)
+            }.onSuccess { (workspaceId, payload) ->
+                val (accounts, debts) = payload
+                val accountBalances = accounts.map { account ->
+                    DashboardSummaryCalculator.accountBalance(
+                        startingBalance = BigDecimal(account.starting_balance.jsonPrimitive.content),
+                    )
+                }
+                val totalCash = DashboardSummaryCalculator.totalCash(accountBalances)
+                val totalDebts = DashboardSummaryCalculator.totalDebts(
+                    debts.map { debt -> BigDecimal(debt.total_payable.jsonPrimitive.content) }
+                )
+                val netWorth = DashboardSummaryCalculator.netWorth(totalCash, totalDebts)
+
                 binding.accountList.text = if (accounts.isEmpty()) {
                     getString(R.string.no_accounts)
                 } else {
-                    accounts.joinToString(separator = "\n") { account ->
-                        "${account.name}: ${account.currency} ${account.starting_balance.jsonPrimitive.content}"
+                    buildString {
+                        append(
+                            accounts.joinToString(separator = "\n") { account ->
+                                "${account.name}: ${account.currency} ${account.starting_balance.jsonPrimitive.content}"
+                            }
+                        )
+                        append("\n\n")
+                        append("Total Cash: ${workspaceCurrency(workspaceId)} $totalCash\n")
+                        append("Total Debts: ${workspaceCurrency(workspaceId)} $totalDebts\n")
+                        append("Net Worth: ${workspaceCurrency(workspaceId)} $netWorth")
                     }
                 }
             }.onFailure {
                 showError(it)
             }
         }
+    }
+
+    private fun workspaceCurrency(workspaceId: String): String {
+        return runCatching {
+            supabaseClient.from("workspaces")
+                .select()
+                .decodeList<Workspace>()
+                .firstOrNull { it.id == workspaceId }
+                ?.base_currency
+                ?: "PHP"
+        }.getOrElse { "PHP" }
     }
 
     private fun createFinancialAccount() {
