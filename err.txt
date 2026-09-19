@@ -1,11 +1,5 @@
-permission denied for schema public
+relation "public.expenses" does not exist Code: 42P01
 
-Code: 42501
+Hint: null Details: null URL: https://bb.../rest/v1/rpc/get_workspace_dashboard Headers: {Authorization=[Bearer ey... (len=931)], Content-Profile=[public], Accept=[application/ json], Prefer=[], apikey=[sb... (len=46)], X-Client-Info=[supabase-kt/3.8.0; platform=Android; platform-version=16; runtime=kotlin; runtime-version=2.3.21]}
 
-Hint: null
-
-Details: null
-
-URL: https://bb.../rest/v1/workspaces?select=%2A Headers: {Authorization=[Bearer ey... (len=931)], Content-Type=[application/json], Accept-Profile=[public], Accept=[application/json], Prefer=[], apikey=[sb...
-
-(len=46)], X-Client-Info=[supabase-kt/3.8.0; platform=Android; platform-version=16; runtime=kotlin; runtime-version=2.3.21]} Http Method: GET
+Http Method: POST
