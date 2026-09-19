@@ -28,6 +28,14 @@ import java.math.BigDecimal
 
 class HomeFragment : Fragment() {
 
+    private data class DashboardTotals(
+        val totalCash: BigDecimal,
+        val totalDebts: BigDecimal,
+        val totalExpenses: BigDecimal,
+        val netWorth: BigDecimal,
+        val cashFlow: BigDecimal,
+    )
+
     private var _binding: FragmentHomeBinding? = null
 
     // This property is only valid between onCreateView and
@@ -188,24 +196,22 @@ class HomeFragment : Fragment() {
                     .filter { it.workspace_id == workspaceId && it.is_active }
                 val totalCash = BigDecimal(first["total_cash"].toString())
                 val totalDebts = BigDecimal(first["total_debts"].toString())
+                val totalExpenses = BigDecimal(first["total_expenses"].toString())
                 val netWorth = BigDecimal(first["net_worth"].toString())
-                Triple(accounts, currency, Triple(totalCash, totalDebts, netWorth))
+                val cashFlow = BigDecimal(first["cash_flow"].toString())
+                Triple(accounts, currency, DashboardTotals(totalCash, totalDebts, totalExpenses, netWorth, cashFlow))
             }.onSuccess { (accounts, currency, totals) ->
-                val (totalCash, totalDebts, netWorth) = totals
+                binding.dashboardTotalCashValue.text = "$currency ${totals.totalCash}"
+                binding.dashboardTotalDebtsValue.text = "$currency ${totals.totalDebts}"
+                binding.dashboardNetWorthValue.text = "$currency ${totals.netWorth}"
+                binding.dashboardTotalExpensesValue.text = "$currency ${totals.totalExpenses}"
+                binding.dashboardCashFlowValue.text = "$currency ${totals.cashFlow}"
 
                 binding.accountList.text = if (accounts.isEmpty()) {
                     getString(R.string.no_accounts)
                 } else {
-                    buildString {
-                        append(
-                            accounts.joinToString(separator = "\n") { account ->
-                                "${account.name}: ${account.currency} ${account.starting_balance.jsonPrimitive.content}"
-                            }
-                        )
-                        append("\n\n")
-                        append("Total Cash: $currency $totalCash\n")
-                        append("Total Debts: $currency $totalDebts\n")
-                        append("Net Worth: $currency $netWorth")
+                    accounts.joinToString(separator = "\n") { account ->
+                        "${account.name}: ${account.currency} ${account.starting_balance.jsonPrimitive.content}"
                     }
                 }
             }.onFailure {

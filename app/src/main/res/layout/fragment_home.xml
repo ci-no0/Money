@@ -108,6 +108,76 @@
             android:visibility="gone">
 
             <TextView
+                android:id="@+id/dashboard_total_cash_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/dashboard_total_cash"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/dashboard_total_cash_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/dashboard_total_debts_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/dashboard_total_debts"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/dashboard_total_debts_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/dashboard_net_worth_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/dashboard_net_worth"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/dashboard_net_worth_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/dashboard_total_expenses_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/dashboard_total_expenses"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/dashboard_total_expenses_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/dashboard_cash_flow_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/dashboard_cash_flow"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/dashboard_cash_flow_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:textSize="18sp" />
+
+            <TextView
                 android:id="@+id/account_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

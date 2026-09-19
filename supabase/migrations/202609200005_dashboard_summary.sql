@@ -41,11 +41,15 @@ $$;
 
 grant execute on function public.get_account_balance(uuid) to authenticated;
 
-create or replace function public.get_workspace_dashboard(requested_workspace uuid)
+drop function if exists public.get_workspace_dashboard(uuid);
+
+create function public.get_workspace_dashboard(requested_workspace uuid)
 returns table (
     total_cash numeric(20, 2),
     total_debts numeric(20, 2),
-    net_worth numeric(20, 2)
+    total_expenses numeric(20, 2),
+    net_worth numeric(20, 2),
+    cash_flow numeric(20, 2)
 )
 language plpgsql
 security definer
@@ -54,6 +58,8 @@ as $$
 declare
     cash_total numeric(20, 2) := 0;
     debt_total numeric(20, 2) := 0;
+    expense_total numeric(20, 2) := 0;
+    flow_total numeric(20, 2) := 0;
 begin
     if auth.uid() is null then
         raise exception 'Authentication is required';
@@ -77,8 +83,29 @@ begin
        and d.deleted_at is null
        and d.status <> 'cancelled';
 
+    select coalesce(sum(e.amount), 0)
+      into expense_total
+      from public.expenses e
+     where e.workspace_id = requested_workspace
+       and e.deleted_at is null;
+
+    select coalesce(sum(
+        case
+            when le.debit > 0 then -le.debit
+            when le.credit > 0 then le.credit
+            else 0
+        end
+    ), 0)
+      into flow_total
+      from public.ledger_transactions lt
+      join public.ledger_entries le on le.ledger_transaction_id = lt.id
+      join public.ledger_accounts la on la.id = le.ledger_account_id
+     where lt.workspace_id = requested_workspace
+       and la.account_type = 'asset'
+       and lt.posted_at >= date_trunc('month', current_date);
+
     return query
-    select cash_total, debt_total, cash_total - debt_total;
+    select cash_total, debt_total, expense_total, cash_total - debt_total, flow_total;
 end;
 $$;
 

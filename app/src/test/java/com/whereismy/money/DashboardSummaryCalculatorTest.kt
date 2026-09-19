@@ -26,4 +26,20 @@ class DashboardSummaryCalculatorTest {
 
         assertEquals(BigDecimal("10000.00"), result)
     }
+
+    @Test
+    fun totalExpensesAndCashFlowSumLedgerMovements() {
+        val expenses = listOf(
+            BigDecimal("250.00"),
+            BigDecimal("300.50"),
+        )
+        val cashFlow = listOf(
+            BigDecimal("800.00"),
+            BigDecimal("-150.25"),
+            BigDecimal("75.00"),
+        )
+
+        assertEquals(BigDecimal("550.50"), DashboardSummaryCalculator.totalExpenses(expenses))
+        assertEquals(BigDecimal("724.75"), DashboardSummaryCalculator.cashFlow(cashFlow))
+    }
 }

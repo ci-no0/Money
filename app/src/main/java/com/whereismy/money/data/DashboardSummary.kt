@@ -8,5 +8,7 @@ import kotlinx.serialization.json.JsonPrimitive
 data class DashboardSummary(
     val total_cash: JsonElement = JsonPrimitive("0.00"),
     val total_debts: JsonElement = JsonPrimitive("0.00"),
+    val total_expenses: JsonElement = JsonPrimitive("0.00"),
     val net_worth: JsonElement = JsonPrimitive("0.00"),
+    val cash_flow: JsonElement = JsonPrimitive("0.00"),
 )

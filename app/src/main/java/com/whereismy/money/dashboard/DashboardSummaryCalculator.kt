@@ -15,6 +15,12 @@ object DashboardSummaryCalculator {
     fun totalDebts(debtAmounts: List<BigDecimal>): BigDecimal =
         debtAmounts.fold(BigDecimal.ZERO) { total, amount -> total + amount }
 
+    fun totalExpenses(expenseAmounts: List<BigDecimal>): BigDecimal =
+        expenseAmounts.fold(BigDecimal.ZERO) { total, amount -> total + amount }
+
+    fun cashFlow(monthlyMovements: List<BigDecimal>): BigDecimal =
+        monthlyMovements.fold(BigDecimal.ZERO) { total, movement -> total + movement }
+
     fun netWorth(totalCash: BigDecimal, totalDebts: BigDecimal): BigDecimal =
         totalCash - totalDebts
 }

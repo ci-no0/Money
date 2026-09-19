@@ -81,6 +81,11 @@
     <string name="no_workspaces">No workspaces yet.</string>
     <string name="account_loading">Loading financial accounts...</string>
     <string name="no_accounts">No financial accounts yet.</string>
+    <string name="dashboard_total_cash">Total Cash</string>
+    <string name="dashboard_total_debts">Total Debts</string>
+    <string name="dashboard_net_worth">Net Worth</string>
+    <string name="dashboard_total_expenses">Total Expenses</string>
+    <string name="dashboard_cash_flow">Cash Flow</string>
     <string name="account_name">Account name</string>
     <string name="starting_balance">Starting balance (PHP)</string>
     <string name="create_account_button">Create financial account</string>
