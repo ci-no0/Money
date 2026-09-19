@@ -8,18 +8,48 @@
     <fragment
         android:id="@+id/nav_home"
         android:name="com.whereismy.money.ui.home.HomeFragment"
-        android:label="@string/menu_home"
+        android:label="@string/menu_dashboard"
         tools:layout="@layout/fragment_home" />
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.whereismy.money.ui.gallery.GalleryFragment"
-        android:label="@string/menu_gallery"
-        tools:layout="@layout/fragment_gallery" />
+        android:id="@+id/nav_accounts"
+        android:name="com.whereismy.money.ui.section.SectionFragment"
+        android:label="@string/menu_accounts"
+        tools:layout="@layout/fragment_section" />
 
     <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="com.whereismy.money.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        android:id="@+id/nav_transactions"
+        android:name="com.whereismy.money.ui.section.SectionFragment"
+        android:label="@string/menu_transactions"
+        tools:layout="@layout/fragment_section" />
+
+    <fragment
+        android:id="@+id/nav_debts"
+        android:name="com.whereismy.money.ui.section.SectionFragment"
+        android:label="@string/menu_debts"
+        tools:layout="@layout/fragment_section" />
+
+    <fragment
+        android:id="@+id/nav_budgets"
+        android:name="com.whereismy.money.ui.section.SectionFragment"
+        android:label="@string/menu_budgets"
+        tools:layout="@layout/fragment_section" />
+
+    <fragment
+        android:id="@+id/nav_reports"
+        android:name="com.whereismy.money.ui.section.SectionFragment"
+        android:label="@string/menu_reports"
+        tools:layout="@layout/fragment_section" />
+
+    <fragment
+        android:id="@+id/nav_business"
+        android:name="com.whereismy.money.ui.section.SectionFragment"
+        android:label="@string/menu_business"
+        tools:layout="@layout/fragment_section" />
+
+    <fragment
+        android:id="@+id/nav_settings"
+        android:name="com.whereismy.money.ui.settings.SettingsFragment"
+        android:label="@string/action_settings"
+        tools:layout="@layout/fragment_settings" />
 </navigation>

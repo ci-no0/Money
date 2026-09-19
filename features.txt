@@ -682,7 +682,7 @@ Use a server-side `has_workspace_permission(auth.uid(), workspace_id, permission
 
 34. Dashboard
 
-Dashboard should show:
+Dashboard is the default destination after sign-in and the user's financial overview. It should show:
 
 - Total Cash
 - Net Worth
@@ -696,7 +696,42 @@ Dashboard data should come from optimized local queries/cached summaries to keep
 
 ---
 
-35. Financial Precision
+35. Android Navigation Drawer and Settings
+
+Use one consistent app shell after authentication:
+
+- A top app bar with the current destination title
+- A left navigation drawer for primary financial modules
+- A three-dot overflow menu in the top-right for Settings
+
+Navigation drawer sections:
+
+- Dashboard: overview of cash, net worth, cash flow, debts, and recent activity
+- Financial Accounts: cash, GCash, banks, shared wallets, balances, and transfers
+- Transactions: income, expenses, transfers, adjustments, and transaction history
+- Debts & Loans: debts, loans, installment schedules, payments, and due dates
+- Budgets: budgets, expense categories, usage, and remaining amounts
+- Profit & Reports: revenue, COGS, expenses, gross profit, net profit, and reports
+- Business: sales, customers, inventory, products, and business settings
+
+The drawer must show only destinations the signed-in user is allowed to access. RLS and server-side permissions remain authoritative; hiding a drawer item is only a usability feature.
+
+The Settings overflow menu is for app-wide or workspace configuration that should not compete with daily financial actions:
+
+- Active workspace and workspace type
+- Members, roles, and granular permissions
+- Currency and timezone
+- Notifications and due-date reminder policy
+- Security, sessions, audit log, and data export
+- About, privacy, and sign out
+
+Workspace settings must apply only to the selected workspace. Account-level settings, such as sessions and sign out, must remain separate from workspace financial data. The active workspace selector must be explicit once a user belongs to more than one workspace; the app must not silently rely on the first workspace.
+
+During incremental implementation, a drawer destination may display a planned-state screen, but it must not claim that a module is complete. Each module becomes active only after its database contract, RLS policies, offline behavior, and focused tests are implemented.
+
+---
+
+36. Financial Precision
 
 Never use floating-point values such as "Double" for money calculations.
 
