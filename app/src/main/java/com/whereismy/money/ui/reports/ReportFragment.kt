@@ -14,6 +14,7 @@ import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.put
 import java.math.BigDecimal
 
@@ -97,7 +98,9 @@ class ReportFragment : Fragment() {
         val raw = when (value) {
             is Number -> value.toString()
             is String -> value
-            is Map<*, *> -> value.values.firstOrNull()?.toString() ?: fallback.toPlainString()
+            is JsonPrimitive -> value.content
+            is Map<*, *> -> value.values.firstOrNull()?.let { parseNumeric(it, fallback).toPlainString() }
+                ?: fallback.toPlainString()
             else -> value?.toString() ?: fallback.toPlainString()
         }
         return runCatching { BigDecimal(raw) }.getOrDefault(fallback)
