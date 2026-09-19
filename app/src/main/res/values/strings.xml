@@ -47,6 +47,8 @@
     <string name="payment_requires_debt_account">Select a debt and financial account first.</string>
     <string name="invalid_payment_amount">Enter a payment amount greater than zero.</string>
     <string name="payment_created">Payment saved and allocated to the installment schedule.</string>
+    <string name="post_debt_receipt">Post loan/debt receipt</string>
+    <string name="receipt_created">Debt receipt posted to the ledger.</string>
     <string-array name="debt_directions">
         <item>Payable</item>
         <item>Receivable</item>

@@ -126,9 +126,11 @@ $$;
 
 grant execute on function public.create_debt(uuid, text, text, numeric, numeric, numeric, integer, date) to authenticated;
 
+drop policy if exists debts_insert on public.debts;
 create policy debts_insert on public.debts for insert
     with check (public.has_workspace_permission(auth.uid(), workspace_id, 'manage_debts'));
 
+drop policy if exists schedules_insert on public.installment_schedules;
 create policy schedules_insert on public.installment_schedules for insert
     with check (exists (
         select 1 from public.debts d

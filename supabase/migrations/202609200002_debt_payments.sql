@@ -97,10 +97,10 @@ begin
     payment_remaining := requested_amount;
 
     for schedule_record in
-        select id, required_amount, principal_amount, interest_amount, fee_amount
-        from public.installment_schedules
-        where debt_id = requested_debt
-        order by installment_number
+        select s.id, s.required_amount, s.principal_amount, s.interest_amount, s.fee_amount
+        from public.installment_schedules s
+        where s.debt_id = requested_debt
+        order by s.installment_number
     loop
         exit when payment_remaining <= 0;
 
@@ -175,7 +175,9 @@ begin
         case when debt_direction = 'payable' then 'liability'::public.ledger_account_type
              else 'asset'::public.ledger_account_type end,
         debt_currency
-    ) returning id into debt_ledger_id;
+    ) on conflict (workspace_id, name) do update
+        set name = excluded.name
+    returning id into debt_ledger_id;
 
     if allocated_interest + allocated_fee > 0 then
         insert into public.ledger_accounts (workspace_id, name, account_type, currency)
@@ -231,9 +233,11 @@ $$;
 
 grant execute on function public.create_debt_payment(uuid, uuid, uuid, numeric) to authenticated;
 
+drop policy if exists payments_insert on public.payments;
 create policy payments_insert on public.payments for insert
     with check (public.has_workspace_permission(auth.uid(), workspace_id, 'manage_debts'));
 
+drop policy if exists allocations_insert on public.payment_allocations;
 create policy allocations_insert on public.payment_allocations for insert
     with check (exists (
         select 1 from public.payments p

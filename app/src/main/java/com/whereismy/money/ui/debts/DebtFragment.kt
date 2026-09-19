@@ -38,6 +38,7 @@ class DebtFragment : Fragment() {
         _binding = FragmentDebtBinding.inflate(inflater, container, false)
         binding.createDebtButton.setOnClickListener { createDebt() }
         binding.createPaymentButton.setOnClickListener { createPayment() }
+        binding.postReceiptButton.setOnClickListener { postReceipt() }
         loadWorkspaceAndDebts()
         return binding.root
     }
@@ -49,6 +50,10 @@ class DebtFragment : Fragment() {
                 val workspace = supabaseClient.from("workspaces")
                     .select().decodeList<Workspace>().firstOrNull()
                     ?: error(getString(R.string.workspace_required))
+                supabaseClient.postgrest.rpc(
+                    "refresh_debt_payment_statuses",
+                    parameters = buildJsonObject { put("requested_workspace", workspace.id) },
+                )
                 val debts = supabaseClient.from("debts")
                     .select().decodeList<Debt>()
                 val accounts = supabaseClient.from("financial_accounts")
@@ -75,8 +80,36 @@ class DebtFragment : Fragment() {
                     accounts.map { "${it.name} (${it.currency})" },
                 )
                 binding.createPaymentButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
+                binding.postReceiptButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
                 binding.debtStatus.setText(R.string.debt_ready)
             }.onFailure { showError(it) }
+        }
+    }
+
+    private fun postReceipt() {
+        val workspaceId = activeWorkspaceId
+        val debt = debts.getOrNull(binding.paymentDebtSpinner.selectedItemPosition)
+        val account = accounts.getOrNull(binding.paymentAccountSpinner.selectedItemPosition)
+        if (workspaceId == null || debt == null || account == null) {
+            binding.debtStatus.setText(R.string.payment_requires_debt_account)
+            return
+        }
+
+        binding.postReceiptButton.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            runCatching {
+                supabaseClient.postgrest.rpc(
+                    "post_debt_receipt",
+                    parameters = buildJsonObject {
+                        put("requested_workspace", workspaceId)
+                        put("requested_debt", debt.id)
+                        put("requested_account", account.id)
+                    },
+                )
+            }.onSuccess {
+                binding.debtStatus.setText(R.string.receipt_created)
+            }.onFailure { showError(it) }
+            binding.postReceiptButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
         }
     }
 
@@ -173,6 +206,7 @@ class DebtFragment : Fragment() {
         binding.debtStatus.text = error.message ?: getString(R.string.debt_error)
         binding.createDebtButton.isEnabled = true
         binding.createPaymentButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
+        binding.postReceiptButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
     }
 
     override fun onDestroyView() {
