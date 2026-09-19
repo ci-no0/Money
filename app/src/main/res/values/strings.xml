@@ -29,6 +29,21 @@
     <string name="workspace_created">Workspace created.</string>
     <string name="workspace_required">Create a workspace to continue.</string>
     <string name="no_workspaces">No workspaces yet.</string>
+    <string name="account_loading">Loading financial accounts...</string>
+    <string name="no_accounts">No financial accounts yet.</string>
+    <string name="account_name">Account name</string>
+    <string name="starting_balance">Starting balance (PHP)</string>
+    <string name="create_account_button">Create financial account</string>
+    <string name="account_created">Financial account created.</string>
+    <string name="account_required">Enter an account name.</string>
+    <string name="invalid_balance">Enter a valid non-negative starting balance.</string>
+    <string-array name="account_types">
+        <item>Cash</item>
+        <item>GCash</item>
+        <item>Bank Account</item>
+        <item>Shared Wallet</item>
+        <item>Petty Cash</item>
+    </string-array>
     <string-array name="workspace_types">
         <item>Personal</item>
         <item>Family</item>

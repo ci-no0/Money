@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.whereismy.money.R
+import com.whereismy.money.data.FinancialAccount
 import com.whereismy.money.data.Workspace
 import com.whereismy.money.supabaseClient
 import io.github.jan.supabase.auth.auth
@@ -16,6 +17,7 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 import com.whereismy.money.databinding.FragmentHomeBinding
 
@@ -27,6 +29,7 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
     private var isSignUpMode = false
+    private var activeWorkspaceId: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,6 +50,7 @@ class HomeFragment : Fragment() {
             }
         }
         binding.createWorkspaceButton.setOnClickListener { createWorkspace() }
+        binding.createAccountButton.setOnClickListener { createFinancialAccount() }
         showCurrentSession()
         return binding.root
     }
@@ -109,6 +113,7 @@ class HomeFragment : Fragment() {
         binding.toggleAuthButton.visibility = View.GONE
         binding.signOutButton.visibility = View.VISIBLE
         binding.workspaceSection.visibility = View.VISIBLE
+        binding.accountSection.visibility = View.GONE
         loadWorkspaces()
     }
 
@@ -120,6 +125,7 @@ class HomeFragment : Fragment() {
         binding.toggleAuthButton.visibility = View.VISIBLE
         binding.signOutButton.visibility = View.GONE
         binding.workspaceSection.visibility = View.GONE
+        binding.accountSection.visibility = View.GONE
         updateAuthMode()
     }
 
@@ -131,6 +137,7 @@ class HomeFragment : Fragment() {
                     .select()
                     .decodeList<Workspace>()
             }.onSuccess { workspaces ->
+                activeWorkspaceId = workspaces.firstOrNull()?.id
                 binding.workspaceList.text = if (workspaces.isEmpty()) {
                     getString(R.string.no_workspaces)
                 } else {
@@ -138,9 +145,75 @@ class HomeFragment : Fragment() {
                         "${workspace.name} (${workspace.workspace_type})"
                     }
                 }
+                if (activeWorkspaceId == null) {
+                    binding.accountSection.visibility = View.GONE
+                } else {
+                    binding.accountSection.visibility = View.VISIBLE
+                    loadFinancialAccounts()
+                }
             }.onFailure {
                 showError(it)
             }
+        }
+    }
+
+    private fun loadFinancialAccounts() {
+        binding.accountList.setText(R.string.account_loading)
+        viewLifecycleOwner.lifecycleScope.launch {
+            runCatching {
+                supabaseClient.from("financial_accounts")
+                    .select()
+                    .decodeList<FinancialAccount>()
+            }.onSuccess { accounts ->
+                binding.accountList.text = if (accounts.isEmpty()) {
+                    getString(R.string.no_accounts)
+                } else {
+                    accounts.joinToString(separator = "\n") { account ->
+                        "${account.name}: ${account.currency} ${account.starting_balance}"
+                    }
+                }
+            }.onFailure {
+                showError(it)
+            }
+        }
+    }
+
+    private fun createFinancialAccount() {
+        val workspaceId = activeWorkspaceId
+        val name = binding.accountNameInput.text.toString().trim()
+        val balanceText = binding.accountBalanceInput.text.toString().trim().ifBlank { "0" }
+        val balance = runCatching { BigDecimal(balanceText) }.getOrNull()
+        if (workspaceId == null || name.isBlank()) {
+            binding.statusHome.setText(R.string.account_required)
+            return
+        }
+        if (balance == null || balance.signum() < 0) {
+            binding.statusHome.setText(R.string.invalid_balance)
+            return
+        }
+
+        binding.createAccountButton.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            runCatching {
+                supabaseClient.postgrest.rpc(
+                    "create_financial_account",
+                    parameters = buildJsonObject {
+                        put("requested_workspace", workspaceId)
+                        put("account_name", name)
+                        put("requested_account_type", binding.accountTypeSpinner.selectedItem.toString())
+                        put("requested_currency", "PHP")
+                        put("requested_starting_balance", balance.toPlainString())
+                    },
+                )
+            }.onSuccess {
+                binding.accountNameInput.text.clear()
+                binding.accountBalanceInput.text.clear()
+                binding.statusHome.setText(R.string.account_created)
+                loadFinancialAccounts()
+            }.onFailure {
+                showError(it)
+            }
+            binding.createAccountButton.isEnabled = true
         }
     }
 

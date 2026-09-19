@@ -98,5 +98,45 @@
                 android:layout_height="wrap_content"
                 android:text="@string/create_workspace" />
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/account_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/account_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/account_name_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/account_name" />
+
+            <Spinner
+                android:id="@+id/account_type_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:entries="@array/account_types" />
+
+            <EditText
+                android:id="@+id/account_balance_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/starting_balance"
+                android:inputType="numberDecimal" />
+
+            <Button
+                android:id="@+id/create_account_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/create_account_button" />
+        </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
