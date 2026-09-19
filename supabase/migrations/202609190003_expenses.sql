@@ -1,7 +1,7 @@
 -- Expense source records and immutable ledger posting.
 -- Run after 202609190002_financial_accounts.sql.
 
-create table public.expense_categories (
+create table if not exists public.expense_categories (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     name text not null check (length(trim(name)) > 0),
@@ -9,7 +9,7 @@ create table public.expense_categories (
     unique (workspace_id, name)
 );
 
-create table public.expenses (
+create table if not exists public.expenses (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     financial_account_id uuid not null references public.financial_accounts(id) on delete restrict,
@@ -27,6 +27,9 @@ create table public.expenses (
 
 alter table public.expense_categories enable row level security;
 alter table public.expenses enable row level security;
+
+drop policy if exists expense_categories_select on public.expense_categories;
+drop policy if exists expenses_select on public.expenses;
 
 create policy expense_categories_select on public.expense_categories
     for select using (public.has_workspace_permission(auth.uid(), workspace_id, 'view_ledger'));
@@ -169,8 +172,8 @@ $$;
 
 grant execute on function public.create_expense(uuid, uuid, text, numeric, text, date) to authenticated;
 
-create index expense_categories_workspace_idx on public.expense_categories(workspace_id);
-create index expenses_workspace_date_idx on public.expenses(workspace_id, transaction_date desc)
+create index if not exists expense_categories_workspace_idx on public.expense_categories(workspace_id);
+create index if not exists expenses_workspace_date_idx on public.expenses(workspace_id, transaction_date desc)
     where deleted_at is null;
 
 -- Make the new RPC visible to PostgREST immediately after the migration runs.
