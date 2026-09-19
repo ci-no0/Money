@@ -25,6 +25,7 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private var workspaceRoles: List<Role> = emptyList()
     private var workspaceMembers: List<WorkspaceMember> = emptyList()
+    private var allWorkspaces: List<Workspace> = emptyList()
     private var availablePermissions: List<Permission> = emptyList()
     private var permissionByRole: Map<String, List<String>> = emptyMap()
     private val permissionCheckboxes = mutableListOf<android.widget.CheckBox>()
@@ -40,6 +41,13 @@ class SettingsFragment : Fragment() {
         binding.settingsRefreshButton.setOnClickListener { loadWorkspaceSettings() }
         binding.settingsAssignRoleButton.setOnClickListener { assignSelectedRole() }
         binding.settingsSavePermissionsButton.setOnClickListener { saveSelectedRolePermissions() }
+        binding.settingsWorkspaceSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                loadWorkspaceSettings()
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+        }
         binding.settingsPermissionRoleSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 updatePermissionSelectionForSelectedRole()
@@ -58,10 +66,26 @@ class SettingsFragment : Fragment() {
                 val currentUserId = supabaseClient.auth.currentUserOrNull()?.id
                     ?: error("Authentication required")
 
-                val workspace = supabaseClient.from("workspaces")
+                val workspaces = supabaseClient.from("workspaces")
                     .select()
                     .decodeList<Workspace>()
-                    .firstOrNull() ?: error("No workspace found")
+                allWorkspaces = workspaces
+                if (workspaces.isEmpty()) {
+                    error("No workspace found")
+                }
+
+                val selectedWorkspaceIndex = binding.settingsWorkspaceSpinner.selectedItemPosition.coerceAtLeast(0)
+                val workspace = workspaces.getOrNull(selectedWorkspaceIndex) ?: workspaces.first()
+
+                binding.settingsWorkspaceSpinner.adapter = ArrayAdapter(
+                    requireContext(),
+                    android.R.layout.simple_spinner_dropdown_item,
+                    workspaces.map { it.name },
+                )
+                val selectedWorkspacePosition = workspaces.indexOfFirst { it.id == workspace.id }
+                if (selectedWorkspacePosition >= 0) {
+                    binding.settingsWorkspaceSpinner.setSelection(selectedWorkspacePosition)
+                }
 
                 val members = supabaseClient.from("workspace_members")
                     .select()

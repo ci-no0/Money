@@ -67,6 +67,12 @@
             android:textAppearance="?attr/textAppearanceTitleMedium" />
 
         <Spinner
+            android:id="@+id/settings_workspace_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp" />
+
+        <Spinner
             android:id="@+id/settings_member_spinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
