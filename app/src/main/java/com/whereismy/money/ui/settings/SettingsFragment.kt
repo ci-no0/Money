@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.whereismy.money.R
@@ -22,6 +23,10 @@ class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
+    private var workspaceRoles: List<Role> = emptyList()
+    private var workspaceMembers: List<WorkspaceMember> = emptyList()
+    private var availablePermissions: List<Permission> = emptyList()
+    private var permissionByRole: Map<String, List<String>> = emptyMap()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -31,6 +36,15 @@ class SettingsFragment : Fragment() {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         binding.settingsTitle.setText(R.string.action_settings)
         binding.settingsStatus.text = "Loading workspace settings..."
+        binding.settingsRefreshButton.setOnClickListener { loadWorkspaceSettings() }
+        binding.settingsAssignRoleButton.setOnClickListener { assignSelectedRole() }
+        binding.settingsPermissionRoleSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updatePermissionSummaryForSelectedRole()
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+        }
         loadWorkspaceSettings()
         return binding.root
     }
@@ -65,6 +79,15 @@ class SettingsFragment : Fragment() {
                     .select()
                     .decodeList<Permission>()
                     .sortedBy { it.code }
+                availablePermissions = permissions
+
+                val rolePermissions = supabaseClient.from("role_permissions")
+                    .select()
+                    .decodeList<Map<String, String>>()
+                permissionByRole = rolePermissions
+                    .filter { it["role_id"] in roles.map { role -> role.id } }
+                    .groupBy { it["role_id"] ?: "" }
+                    .mapValues { (_, entries) -> entries.mapNotNull { it["permission_code"] } }
 
                 val currentMember = members.firstOrNull { it.user_id == currentUserId }
                 val currentRoleName = roles.firstOrNull { it.id == currentMember?.role_id }?.name ?: "No role assigned"
@@ -77,6 +100,32 @@ class SettingsFragment : Fragment() {
                     val label = profile?.display_name?.takeIf { it.isNotBlank() } ?: member.user_id
                     "- $label — $roleName"
                 }
+
+                workspaceRoles = roles
+                workspaceMembers = members
+
+                val memberNames = members.map { member ->
+                    val profile = profiles[member.user_id]
+                    profile?.display_name?.takeIf { it.isNotBlank() } ?: member.user_id
+                }
+
+                binding.settingsMemberSpinner.adapter = ArrayAdapter(
+                    requireContext(),
+                    android.R.layout.simple_spinner_dropdown_item,
+                    memberNames,
+                )
+                binding.settingsRoleSpinner.adapter = ArrayAdapter(
+                    requireContext(),
+                    android.R.layout.simple_spinner_dropdown_item,
+                    roles.map { it.name },
+                )
+                binding.settingsPermissionRoleSpinner.adapter = ArrayAdapter(
+                    requireContext(),
+                    android.R.layout.simple_spinner_dropdown_item,
+                    roles.map { it.name },
+                )
+
+                updatePermissionSummaryForSelectedRole()
 
                 buildString {
                     appendLine("Workspace: ${workspace.name}")
@@ -102,6 +151,47 @@ class SettingsFragment : Fragment() {
             }.onFailure { error ->
                 binding.settingsDetails.text = "Workspace settings unavailable."
                 binding.settingsStatus.text = error.message ?: "Could not load workspace settings"
+            }
+        }
+    }
+
+    private fun updatePermissionSummaryForSelectedRole() {
+        if (workspaceRoles.isEmpty()) {
+            binding.settingsPermissionSummary.text = "No roles available"
+            return
+        }
+
+        val selectedRoleIndex = binding.settingsPermissionRoleSpinner.selectedItemPosition.coerceIn(0, workspaceRoles.lastIndex)
+        val selectedRole = workspaceRoles[selectedRoleIndex]
+        val assignedPermissions = permissionByRole[selectedRole.id].orEmpty()
+        val summaryText = if (assignedPermissions.isEmpty()) {
+            "Role: ${selectedRole.name}\nNo permissions assigned"
+        } else {
+            val entries = assignedPermissions.joinToString(separator = "\n") { "- $it" }
+            "Role: ${selectedRole.name}\n$entries"
+        }
+        binding.settingsPermissionSummary.text = summaryText
+    }
+
+    private fun assignSelectedRole() {
+        val selectedMember = workspaceMembers.getOrNull(binding.settingsMemberSpinner.selectedItemPosition)
+        val selectedRole = workspaceRoles.getOrNull(binding.settingsRoleSpinner.selectedItemPosition)
+        if (selectedMember == null || selectedRole == null) {
+            binding.settingsStatus.text = "Select both a member and a role first."
+            return
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            runCatching {
+                supabaseClient.from("workspace_members")
+                    .update(mapOf("role_id" to selectedRole.id)) {
+                        filter { eq("id", selectedMember.id) }
+                    }
+            }.onSuccess {
+                binding.settingsStatus.text = "Role assigned successfully."
+                loadWorkspaceSettings()
+            }.onFailure { error ->
+                binding.settingsStatus.text = error.message ?: "Could not assign role."
             }
         }
     }
