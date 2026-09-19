@@ -1,11 +1,25 @@
-column reference "budget_name" is ambiguous Code: 42702
+new row violates row-level security policy for table
+
+"role_permissions"
+
+Code: 42501
 
 Hint: null
 
-Details: "It could refer to either a PL/pgSQL variable or a table column."
+Details: null
 
-URL: https://bb.../rest/v1/rpc/get_workspace_budget
+URL: https://bb.../rest/v1/role_permissions?columns=role
 
-_overview
+_id%2Cpermission_code
 
-Headers: {Authorization=[Bearer ey... (len=931)], Content-Profile=[public], Accept=[application/ json], Prefer=[], apikey=[sb... (len=46)], X-Client-Info=[supabase-kt/3.8.0; platform=Android; platform-version=16; runtime=kotlin; runtime-version=2.3.21]} Http Method: POST
+Headers: {Authorization=[Bearer ey... (len=931)],
+
+Content-Profile=[public], Accept=[application/
+
+json], Prefer=[return=minimal], apikey=[sb...
+
+(len=46)], X-Client-Info=[supabase-kt/3.8.0;
+
+platform=Android; platform-version=16; runtime=kotlin; runtime-version=2.3.21]}
+
+Http Method: POST
