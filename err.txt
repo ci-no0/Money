@@ -12,6 +12,6 @@ public.create_financial_account(account_name, requested_account_type, requested_
 
 public.create_financial_account with parameters account_name, requested_account_type, requested_currency, requested_starting_balance, requested_workspace or with a single unnamed json/ jsonb parameter, but no matches were found in the schema cache."
 
-URL: https://bb.../rest/v1/rpc/create_financial_account Headers: {Authorization=[Bearer ey... (len=931)], Content-Profile=[public], Accept=[application/ json], Prefer=[, apikey=[sb... (len=46)], X-Client-Info=[supabase-kt/3.8.0; platform=Android; platform-version=16; runtime=kotlin; runtime-version=2.3.21]}
+URL: https://bb.../rest/v1/rpc/create_financial_account Headers: {Authorization=[Bearer ey... (len=931)], Content-Profile=[public], Accept=[application/ json], Prefer=[], apikey=[sb... (len=46)], X-Client-Info=[supabase-kt/3.8.0; platform=Android; platform-version=16; runtime=kotlin; runtime-version=2.3.21]}
 
 Http Method: POST
