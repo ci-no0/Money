@@ -1,13 +1,19 @@
 -- Budget tracking for monthly category limits.
 -- Run after the expense categories migration and the dashboard summary migration.
 
--- Re-runnable migration support: drop existing objects from earlier attempts first.
-drop policy if exists budgets_select on public.budgets;
-drop policy if exists budgets_insert on public.budgets;
-drop policy if exists budgets_update on public.budgets;
+-- Re-runnable migration support: only clean up when the budget objects already exist.
+do $$
+begin
+    if to_regclass('public.budgets') is not null then
+        drop policy if exists budgets_select on public.budgets;
+        drop policy if exists budgets_insert on public.budgets;
+        drop policy if exists budgets_update on public.budgets;
+        drop table if exists public.budgets cascade;
+    end if;
+end $$;
+
 drop function if exists public.get_workspace_budget_overview(uuid);
 drop function if exists public.create_budget(uuid, text, text, numeric, date);
-drop table if exists public.budgets cascade;
 
 create table public.budgets (
     id uuid primary key default gen_random_uuid(),
@@ -123,6 +129,20 @@ begin
 
     if not public.has_workspace_permission(auth.uid(), requested_workspace, 'view_ledger') then
         raise exception 'You do not have permission to view budget data for this workspace';
+    end if;
+
+    if to_regclass('public.expense_categories') is null or to_regclass('public.expenses') is null then
+        return query
+        select
+            b.name as budget_name,
+            b.category,
+            b.amount as budget_amount,
+            0::numeric(20, 2) as spent_amount,
+            b.amount as remaining_amount,
+            0::numeric(20, 2) as percent_used
+        from public.budgets b
+        where b.workspace_id = requested_workspace
+        order by b.budget_month desc, b.category;
     end if;
 
     return query
