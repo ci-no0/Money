@@ -27,6 +27,24 @@
     <string name="invalid_expense_amount">Enter an amount greater than zero.</string>
     <string name="expense_created">Expense saved and posted to the ledger.</string>
     <string name="expense_migration_required">Run the expenses Supabase migration before saving an expense.</string>
+    <string name="debt_loading">Loading debts...</string>
+    <string name="debt_ready">Ready to create a debt or loan.</string>
+    <string name="debt_error">Unable to load debts.</string>
+    <string name="no_debts">No debts or loans yet.</string>
+    <string name="debt_title">Debt or loan title</string>
+    <string name="debt_principal">Principal amount (PHP)</string>
+    <string name="debt_interest">Total interest (PHP)</string>
+    <string name="debt_fee">Total fees (PHP)</string>
+    <string name="debt_months">Number of months</string>
+    <string name="create_debt">Create debt schedule</string>
+    <string name="debt_title_required">Enter a debt title.</string>
+    <string name="invalid_debt_amount">Enter valid non-negative amounts.</string>
+    <string name="invalid_debt_months">Months must be between 1 and 600.</string>
+    <string name="debt_created">Debt created with an exact installment schedule.</string>
+    <string-array name="debt_directions">
+        <item>Payable</item>
+        <item>Receivable</item>
+    </string-array>
     <string name="app_name">Where is my Money</string>
     <string name="auth_title">Money Tracker</string>
     <string name="email">Email</string>

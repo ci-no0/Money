@@ -25,9 +25,9 @@
 
     <fragment
         android:id="@+id/nav_debts"
-        android:name="com.whereismy.money.ui.section.SectionFragment"
+        android:name="com.whereismy.money.ui.debts.DebtFragment"
         android:label="@string/menu_debts"
-        tools:layout="@layout/fragment_section" />
+        tools:layout="@layout/fragment_debt" />
 
     <fragment
         android:id="@+id/nav_budgets"

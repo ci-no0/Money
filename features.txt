@@ -153,6 +153,13 @@ Track:
 
 Each payment must record its allocation to principal, interest, fees, and any overpayment. Payment allocation must be deterministic and must not change after posting without an audited correction.
 
+Implementation status:
+
+- Debt creation validates workspace permission and creates a server-generated installment schedule.
+- The schedule total equals principal plus interest plus fees using exact PostgreSQL numeric arithmetic.
+- The final installment receives the rounding remainder instead of using floating-point division.
+- Debt payment posting, partial allocation, and liability/receivable ledger effects remain a separate mutation and must not be simulated by editing schedule rows directly.
+
 ---
 
 8. Notifications
