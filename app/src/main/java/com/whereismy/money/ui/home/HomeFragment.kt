@@ -9,7 +9,10 @@ import androidx.lifecycle.lifecycleScope
 import com.whereismy.money.R
 import com.whereismy.money.data.Workspace
 import com.whereismy.money.supabaseClient
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.Email
+import io.github.jan.supabase.postgrest.from
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.coroutines.launch
