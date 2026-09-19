@@ -10,5 +10,29 @@
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
     <string name="app_name">Where is my Money</string>
+    <string name="auth_title">Money Tracker</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign in</string>
+    <string name="create_account">Create account</string>
+    <string name="sign_up">Sign up</string>
+    <string name="switch_to_sign_in">Already have an account? Sign in</string>
+    <string name="sign_out">Sign out</string>
+    <string name="signed_in">Signed in. Workspace onboarding is next.</string>
+    <string name="check_email">Check your email to confirm your account.</string>
+    <string name="auth_required">Sign in or create an account to continue.</string>
+    <string name="missing_credentials">Enter an email and password.</string>
+    <string name="auth_loading">Please wait...</string>
+    <string name="workspace_name">Workspace name</string>
+    <string name="create_workspace">Create workspace</string>
+    <string name="workspace_loading">Loading workspaces...</string>
+    <string name="workspace_created">Workspace created.</string>
+    <string name="workspace_required">Create a workspace to continue.</string>
+    <string name="no_workspaces">No workspaces yet.</string>
+    <string-array name="workspace_types">
+        <item>Personal</item>
+        <item>Family</item>
+        <item>Business</item>
+    </string-array>
 
 </resources>

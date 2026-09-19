@@ -1,0 +1,4 @@
+# Copy these entries into local.properties and replace the placeholders.
+# Never commit local.properties or a service_role key.
+supabase.url=https://your-project.supabase.co
+supabase.publishableKey=your-publishable-key

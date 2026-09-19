@@ -4,6 +4,7 @@ import java.io.FileInputStream
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 val keystorePropsFile = rootProject.file("release.properties")
@@ -22,6 +23,17 @@ val hasValidSigningProps = keystorePropsFile.exists().also { exists ->
             "keyAlias", "keyPassword").all { key ->
         keystoreProps[key] != null
     }
+}
+
+val localPropsFile = rootProject.file("local.properties")
+val localProps = Properties()
+if (localPropsFile.exists()) {
+    localPropsFile.inputStream().use(localProps::load)
+}
+
+fun buildConfigString(name: String): String {
+    val value = localProps.getProperty(name, "")
+    return "\"${value.replace("\\", "\\\\").replace("\"", "\\\"")}\""
 }
 
 
@@ -47,10 +59,13 @@ android {
 
     defaultConfig {
         applicationId = "com.whereismy.money"
-        minSdk = 21 
+        minSdk = 26
         targetSdk = 36  
         versionCode = 1
         versionName = "1.0"
+
+        buildConfigField("String", "SUPABASE_URL", buildConfigString("supabase.url"))
+        buildConfigField("String", "SUPABASE_PUBLISHABLE_KEY", buildConfigString("supabase.publishableKey"))
         
         vectorDrawables { 
             useSupportLibrary = true
@@ -74,6 +89,7 @@ android {
 
     buildFeatures {
         viewBinding = true
+        buildConfig = true
         
     }
     packaging {
@@ -140,6 +156,13 @@ kotlin {
 
 dependencies {
 
+    implementation(platform(libs.supabase.bom))
+    implementation(libs.supabase.auth)
+    implementation(libs.supabase.postgrest)
+    implementation(libs.supabase.storage)
+    implementation(libs.supabase.realtime)
+    implementation(libs.ktor.client.android)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.livedata)
