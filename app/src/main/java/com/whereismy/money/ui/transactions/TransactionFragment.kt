@@ -119,7 +119,14 @@ class TransactionFragment : Fragment() {
     }
 
     private fun showError(error: Throwable) {
-        binding.transactionStatus.text = error.message ?: getString(R.string.transaction_error)
+        val message = error.message.orEmpty()
+        binding.transactionStatus.setText(
+            if (message.contains("PGRST202") || message.contains("schema cache")) {
+                R.string.expense_migration_required
+            } else {
+                R.string.transaction_error
+            }
+        )
         binding.createExpenseButton.isEnabled = accounts.isNotEmpty()
     }
 

@@ -172,3 +172,6 @@ grant execute on function public.create_expense(uuid, uuid, text, numeric, text,
 create index expense_categories_workspace_idx on public.expense_categories(workspace_id);
 create index expenses_workspace_date_idx on public.expenses(workspace_id, transaction_date desc)
     where deleted_at is null;
+
+-- Make the new RPC visible to PostgREST immediately after the migration runs.
+notify pgrst, 'reload schema';

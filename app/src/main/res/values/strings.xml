@@ -26,6 +26,7 @@
     <string name="expense_category_required">Enter an expense category.</string>
     <string name="invalid_expense_amount">Enter an amount greater than zero.</string>
     <string name="expense_created">Expense saved and posted to the ledger.</string>
+    <string name="expense_migration_required">Run the expenses Supabase migration before saving an expense.</string>
     <string name="app_name">Where is my Money</string>
     <string name="auth_title">Money Tracker</string>
     <string name="email">Email</string>
