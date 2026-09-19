@@ -27,6 +27,7 @@ class SettingsFragment : Fragment() {
     private var workspaceMembers: List<WorkspaceMember> = emptyList()
     private var availablePermissions: List<Permission> = emptyList()
     private var permissionByRole: Map<String, List<String>> = emptyMap()
+    private val permissionCheckboxes = mutableListOf<android.widget.CheckBox>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,8 +39,10 @@ class SettingsFragment : Fragment() {
         binding.settingsStatus.text = "Loading workspace settings..."
         binding.settingsRefreshButton.setOnClickListener { loadWorkspaceSettings() }
         binding.settingsAssignRoleButton.setOnClickListener { assignSelectedRole() }
+        binding.settingsSavePermissionsButton.setOnClickListener { saveSelectedRolePermissions() }
         binding.settingsPermissionRoleSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                updatePermissionSelectionForSelectedRole()
                 updatePermissionSummaryForSelectedRole()
             }
 
@@ -125,6 +128,7 @@ class SettingsFragment : Fragment() {
                     roles.map { it.name },
                 )
 
+                updatePermissionSelectionForSelectedRole()
                 updatePermissionSummaryForSelectedRole()
 
                 buildString {
@@ -155,6 +159,37 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private fun updatePermissionSelectionForSelectedRole() {
+        binding.settingsPermissionCheckboxContainer.removeAllViews()
+        permissionCheckboxes.clear()
+
+        if (workspaceRoles.isEmpty()) {
+            binding.settingsPermissionSummary.text = "No roles available"
+            return
+        }
+
+        val selectedRoleIndex = binding.settingsPermissionRoleSpinner.selectedItemPosition.coerceIn(0, workspaceRoles.lastIndex)
+        val selectedRole = workspaceRoles[selectedRoleIndex]
+        val assignedPermissions = permissionByRole[selectedRole.id].orEmpty().toSet()
+
+        availablePermissions.forEach { permission ->
+            val checkBox = android.widget.CheckBox(requireContext()).apply {
+                text = permission.code
+                isChecked = permission.code in assignedPermissions
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                )
+            }
+            permissionCheckboxes.add(checkBox)
+            binding.settingsPermissionCheckboxContainer.addView(checkBox)
+        }
+
+        if (availablePermissions.isEmpty()) {
+            binding.settingsPermissionSummary.text = "Role: ${selectedRole.name}\nNo permission catalog available"
+        }
+    }
+
     private fun updatePermissionSummaryForSelectedRole() {
         if (workspaceRoles.isEmpty()) {
             binding.settingsPermissionSummary.text = "No roles available"
@@ -171,6 +206,46 @@ class SettingsFragment : Fragment() {
             "Role: ${selectedRole.name}\n$entries"
         }
         binding.settingsPermissionSummary.text = summaryText
+    }
+
+    private fun saveSelectedRolePermissions() {
+        val selectedRole = workspaceRoles.getOrNull(binding.settingsPermissionRoleSpinner.selectedItemPosition)
+        if (selectedRole == null) {
+            binding.settingsStatus.text = "Select a role to edit permissions."
+            return
+        }
+
+        val permissionCodes = permissionCheckboxes
+            .filter { it.isChecked }
+            .map { it.text.toString() }
+            .distinct()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            runCatching {
+                supabaseClient.from("role_permissions")
+                    .delete {
+                        filter { eq("role_id", selectedRole.id) }
+                    }
+
+                if (permissionCodes.isNotEmpty()) {
+                    val rows = permissionCodes.map { code ->
+                        mapOf(
+                            "role_id" to selectedRole.id,
+                            "permission_code" to code,
+                        )
+                    }
+                    supabaseClient.from("role_permissions").insert(rows)
+                }
+            }.onSuccess {
+                permissionByRole = permissionByRole.toMutableMap().apply {
+                    put(selectedRole.id, permissionCodes)
+                }
+                binding.settingsStatus.text = "Role permissions saved."
+                updatePermissionSummaryForSelectedRole()
+            }.onFailure { error ->
+                binding.settingsStatus.text = error.message ?: "Could not save role permissions."
+            }
+        }
     }
 
     private fun assignSelectedRole() {
