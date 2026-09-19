@@ -1,5 +1,17 @@
-relation "public.expenses" does not exist Code: 42P01
+Could not find the function
 
-Hint: null Details: null URL: https://bb.../rest/v1/rpc/get_workspace_dashboard Headers: {Authorization=[Bearer ey... (len=931)], Content-Profile=[public], Accept=[application/ json], Prefer=[], apikey=[sb... (len=46)], X-Client-Info=[supabase-kt/3.8.0; platform=Android; platform-version=16; runtime=kotlin; runtime-version=2.3.21]}
+Code: PGRST202
+
+Hint: Perhaps you meant to call the function
+
+public.create_workspace
+
+Details: "Searched for the function
+
+public.create_financial_account(account_name, requested_account_type, requested_currency, requested_starting_balance, requested_workspace) in the schema cache
+
+public.create_financial_account with parameters account_name, requested_account_type, requested_currency, requested_starting_balance, requested_workspace or with a single unnamed json/ jsonb parameter, but no matches were found in the schema cache."
+
+URL: https://bb.../rest/v1/rpc/create_financial_account Headers: {Authorization=[Bearer ey... (len=931)], Content-Profile=[public], Accept=[application/ json], Prefer=[, apikey=[sb... (len=46)], X-Client-Info=[supabase-kt/3.8.0; platform=Android; platform-version=16; runtime=kotlin; runtime-version=2.3.21]}
 
 Http Method: POST
