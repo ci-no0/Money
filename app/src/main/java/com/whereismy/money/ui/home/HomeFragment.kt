@@ -15,6 +15,7 @@ import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -169,7 +170,7 @@ class HomeFragment : Fragment() {
                     getString(R.string.no_accounts)
                 } else {
                     accounts.joinToString(separator = "\n") { account ->
-                        "${account.name}: ${account.currency} ${account.starting_balance}"
+                        "${account.name}: ${account.currency} ${account.starting_balance.jsonPrimitive.content}"
                     }
                 }
             }.onFailure {
