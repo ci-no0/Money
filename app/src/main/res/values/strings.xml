@@ -86,6 +86,15 @@
     <string name="dashboard_net_worth">Net Worth</string>
     <string name="dashboard_total_expenses">Total Expenses</string>
     <string name="dashboard_cash_flow">Cash Flow</string>
+    <string name="report_ready">Report loaded.</string>
+    <string name="report_error">Unable to load report summary.</string>
+    <string name="no_budgets">No budgets yet.</string>
+    <string name="budget_ready">Ready to create a budget.</string>
+    <string name="budget_error">Unable to load budget data.</string>
+    <string name="budget_name_required">Enter a budget name.</string>
+    <string name="budget_category_required">Enter a budget category.</string>
+    <string name="invalid_budget_amount">Enter a valid budget amount greater than zero.</string>
+    <string name="budget_created">Budget saved.</string>
     <string name="account_name">Account name</string>
     <string name="starting_balance">Starting balance (PHP)</string>
     <string name="create_account_button">Create financial account</string>

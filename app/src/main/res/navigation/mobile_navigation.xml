@@ -31,15 +31,15 @@
 
     <fragment
         android:id="@+id/nav_budgets"
-        android:name="com.whereismy.money.ui.section.SectionFragment"
+        android:name="com.whereismy.money.ui.budgets.BudgetFragment"
         android:label="@string/menu_budgets"
-        tools:layout="@layout/fragment_section" />
+        tools:layout="@layout/fragment_budget" />
 
     <fragment
         android:id="@+id/nav_reports"
-        android:name="com.whereismy.money.ui.section.SectionFragment"
+        android:name="com.whereismy.money.ui.reports.ReportFragment"
         android:label="@string/menu_reports"
-        tools:layout="@layout/fragment_section" />
+        tools:layout="@layout/fragment_report" />
 
     <fragment
         android:id="@+id/nav_business"

@@ -8,6 +8,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.whereismy.money.R
+import com.whereismy.money.data.Budget
+import com.whereismy.money.data.Expense
 import com.whereismy.money.data.FinancialAccount
 import com.whereismy.money.data.Workspace
 import com.whereismy.money.databinding.FragmentSectionBinding
@@ -18,6 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import java.math.BigDecimal
 
 class SectionFragment : Fragment() {
 
@@ -85,12 +88,36 @@ class SectionFragment : Fragment() {
                     parameters = buildJsonObject { put("requested_workspace", workspace.id) },
                 )
                 val first = parseDashboardSummary(dashboard)
-                "Budget overview\n" +
-                    "Workspace: ${workspace.name}\n" +
-                    "Total Cash: ${first["total_cash"]}\n" +
-                    "Total Debts: ${first["total_debts"]}\n" +
-                    "Net Worth: ${first["net_worth"]}\n" +
-                    "Monthly Cash Flow: ${first["cash_flow"]}"
+                val budgets = supabaseClient.from("budgets")
+                    .select()
+                    .decodeList<Budget>()
+                    .filter { it.workspace_id == workspace.id }
+                val expenseSummary = supabaseClient.postgrest.rpc(
+                    "get_workspace_budget_overview",
+                    parameters = buildJsonObject { put("requested_workspace", workspace.id) },
+                )
+                val rows = when (expenseSummary) {
+                    is List<*> -> expenseSummary
+                    is Map<*, *> -> listOf(expenseSummary)
+                    else -> emptyList<Any?>()
+                }
+                val overviewText = if (rows.isEmpty()) {
+                    "Budget overview\n" +
+                        "Workspace: ${workspace.name}\n" +
+                        "Budget entries: ${budgets.size}\n" +
+                        "Total Cash: ${first["total_cash"]}\n" +
+                        "Monthly Cash Flow: ${first["cash_flow"]}"
+                } else {
+                    rows.joinToString(separator = "\n") { row ->
+                        val map = row as? Map<*, *> ?: return@joinToString "Budget row unavailable"
+                        val name = map["category"] ?: "Budget"
+                        val limit = map["budget_amount"] ?: "0"
+                        val spent = map["spent_amount"] ?: "0"
+                        val remaining = map["remaining_amount"] ?: "0"
+                        "$name: limit=$limit spent=$spent remain=$remaining"
+                    }
+                }
+                overviewText
             }.onSuccess { content ->
                 binding.sectionDescription.text = content
             }.onFailure {
@@ -112,12 +139,21 @@ class SectionFragment : Fragment() {
                     parameters = buildJsonObject { put("requested_workspace", workspace.id) },
                 )
                 val first = parseDashboardSummary(dashboard)
+                val expenses = supabaseClient.from("expenses")
+                    .select()
+                    .decodeList<Expense>()
+                    .filter { it.workspace_id == workspace.id }
+                val totalExpenses = expenses.fold(BigDecimal.ZERO) { total, expense ->
+                    total + BigDecimal(expense.amount.jsonPrimitive.content)
+                }
                 "Profit & Reports\n" +
                     "Workspace: ${workspace.name}\n" +
                     "Total Expenses: ${first["total_expenses"]}\n" +
                     "Net Worth: ${first["net_worth"]}\n" +
                     "Cash Flow: ${first["cash_flow"]}\n" +
-                    "Total Cash: ${first["total_cash"]}"
+                    "Total Cash: ${first["total_cash"]}\n\n" +
+                    "Logged expenses: ${expenses.size}\n" +
+                    "Expense ledger total: ${totalExpenses}"
             }.onSuccess { content ->
                 binding.sectionDescription.text = content
             }.onFailure {
