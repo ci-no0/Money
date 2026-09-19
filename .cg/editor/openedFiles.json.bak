@@ -14,23 +14,8 @@
           "line": 34
         }
       }
-    },
-    {
-      "file": "/storage/emulated/0/CodeOnTheGoProjects/Where is my Money/err.txt",
-      "selection": {
-        "end": {
-          "column": 99,
-          "index": 99,
-          "line": 0
-        },
-        "start": {
-          "column": 99,
-          "index": 99,
-          "line": 0
-        }
-      }
     }
   ],
   "projectPath": "/storage/emulated/0/CodeOnTheGoProjects/Where is my Money",
-  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/Where is my Money/err.txt"
+  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/Where is my Money/app/src/main/java/com/whereismy/money/MainActivity.kt"
 }
