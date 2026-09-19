@@ -19,14 +19,14 @@
       "file": "/storage/emulated/0/CodeOnTheGoProjects/Where is my Money/err.txt",
       "selection": {
         "end": {
-          "column": 99,
-          "index": 99,
-          "line": 0
+          "column": 0,
+          "index": 1445,
+          "line": 30
         },
         "start": {
-          "column": 99,
-          "index": 99,
-          "line": 0
+          "column": 0,
+          "index": 1445,
+          "line": 30
         }
       }
     }
