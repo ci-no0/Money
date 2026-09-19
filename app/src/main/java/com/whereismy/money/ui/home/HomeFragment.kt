@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.whereismy.money.R
@@ -62,23 +64,20 @@ class HomeFragment : Fragment() {
                     .onFailure { showError(it) }
             }
         }
-        binding.workspaceSelectorSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedWorkspaceId = (binding.workspaceSelectorSpinner.adapter as? ArrayAdapter<*>)
-                    ?.getItem(position)?.let { item ->
-                        (item as? String)?.let { label ->
-                            val matches = (binding.workspaceSelectorSpinner.tag as? Map<String, String>)
-                                ?.entries?.firstOrNull { it.value == label }?.key
-                            matches
-                        }
-                    }
-                if (selectedWorkspaceId != null) {
+        binding.workspaceSelectorSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedLabel = binding.workspaceSelectorSpinner.selectedItem as? String ?: return
+                val selectedWorkspaceId = (binding.workspaceSelectorSpinner.tag as? Map<String, String>)
+                    ?.entries
+                    ?.firstOrNull { it.value == selectedLabel }
+                    ?.key
+                if (selectedWorkspaceId != null && selectedWorkspaceId != activeWorkspaceId) {
                     activeWorkspaceId = selectedWorkspaceId
                     loadFinancialAccounts()
                 }
             }
 
-            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+            override fun onNothingSelected(parent: AdapterView<*>?) = Unit
         }
         binding.createWorkspaceButton.setOnClickListener { createWorkspace() }
         binding.createAccountButton.setOnClickListener { createFinancialAccount() }
