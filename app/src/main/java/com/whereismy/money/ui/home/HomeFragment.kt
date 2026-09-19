@@ -10,6 +10,8 @@ import com.whereismy.money.R
 import com.whereismy.money.dashboard.DashboardSummaryCalculator
 import com.whereismy.money.data.Debt
 import com.whereismy.money.data.FinancialAccount
+import com.whereismy.money.data.LedgerAccount
+import com.whereismy.money.data.LedgerEntry
 import com.whereismy.money.data.Workspace
 import com.whereismy.money.databinding.FragmentHomeBinding
 import com.whereismy.money.supabaseClient
@@ -179,13 +181,28 @@ class HomeFragment : Fragment() {
                     .firstOrNull { it.id == workspaceId }
                     ?.base_currency
                     ?: "PHP"
-                workspaceId to (accounts to debts) to currency
-            }.onSuccess { (workspaceId, payload) ->
-                val (accounts, debts) = payload.first
-                val currency = payload.second
+
                 val accountBalances = accounts.map { account ->
+                    val assetLedger = supabaseClient.from("ledger_accounts")
+                        .select()
+                        .decodeList<LedgerAccount>()
+                        .firstOrNull { it.financial_account_id == account.id && it.account_type == "asset" }
+                    val entries = if (assetLedger == null) emptyList() else {
+                        supabaseClient.from("ledger_entries")
+                            .select()
+                            .decodeList<LedgerEntry>()
+                            .filter { it.ledger_account_id == assetLedger.id }
+                    }
+                    val debit = entries.fold(BigDecimal.ZERO) { total, entry ->
+                        total + BigDecimal(entry.debit.jsonPrimitive.content)
+                    }
+                    val credit = entries.fold(BigDecimal.ZERO) { total, entry ->
+                        total + BigDecimal(entry.credit.jsonPrimitive.content)
+                    }
                     DashboardSummaryCalculator.accountBalance(
                         startingBalance = BigDecimal(account.starting_balance.jsonPrimitive.content),
+                        debit = debit,
+                        credit = credit,
                     )
                 }
                 val totalCash = DashboardSummaryCalculator.totalCash(accountBalances)
@@ -193,6 +210,10 @@ class HomeFragment : Fragment() {
                     debts.map { debt -> BigDecimal(debt.total_payable.jsonPrimitive.content) }
                 )
                 val netWorth = DashboardSummaryCalculator.netWorth(totalCash, totalDebts)
+                Triple(workspaceId, accounts, currency) to Triple(totalCash, totalDebts, netWorth)
+            }.onSuccess { (workspaceSummary, totals) ->
+                val (workspaceId, accounts, currency) = workspaceSummary
+                val (totalCash, totalDebts, netWorth) = totals
 
                 binding.accountList.text = if (accounts.isEmpty()) {
                     getString(R.string.no_accounts)
