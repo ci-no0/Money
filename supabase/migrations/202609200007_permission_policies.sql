@@ -2,6 +2,15 @@
 -- This fixes INSERT/UPDATE/DELETE failures such as:
 -- "new row violates row-level security policy for table \"role_permissions\""
 
+drop policy if exists role_permissions_select on public.role_permissions;
+drop policy if exists role_permissions_insert on public.role_permissions;
+drop policy if exists role_permissions_update on public.role_permissions;
+drop policy if exists role_permissions_delete on public.role_permissions;
+drop policy if exists member_permissions_select on public.member_permissions;
+drop policy if exists member_permissions_insert on public.member_permissions;
+drop policy if exists member_permissions_update on public.member_permissions;
+drop policy if exists member_permissions_delete on public.member_permissions;
+
 create policy role_permissions_select on public.role_permissions
     for select using (
         exists (
