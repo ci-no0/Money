@@ -1,0 +1,924 @@
+Money & Debt Tracker — Final Architecture Decisions
+
+1. Profit Tracking + Profit Report
+
+Combine into one feature:
+
+Profit Management
+
+- Revenue/Sales
+- Cost of Goods Sold
+- Business Expenses
+- Gross Profit
+- Net Profit
+- Profit Reports
+
+---
+
+2. Total Balance + Cash Flow
+
+Use separate calculated indicators instead of one ambiguous Total Balance:
+
+- Account Balance: balance of one financial account
+- Total Cash: sum of the user's authorized financial account balances
+- Net Worth: total assets minus total liabilities
+- Cash Flow: money entering and leaving accounts during a selected period
+
+Account Balance is calculated from:
+
+- Starting Balance
+- Posted ledger entries
+
+Transfers change the source and destination Account Balance, but have zero net effect on Total Cash and Net Worth. Transfers are included in Cash Flow as internal movements, but never as Income or Expense.
+
+All calculated balances must come from the posted financial ledger. Cached summaries are allowed for performance but must be rebuildable from the ledger.
+
+---
+
+3. Expenses vs Debt Payments
+
+Use separate transaction types.
+
+Transaction Types:
+
+- Income
+- Expense
+- Debt Received
+- Debt Payment
+- Loan
+- Transfer
+- Adjustment
+- Sale/Revenue
+
+A Debt Payment must be linked to the specific debt and must not automatically become an ordinary Expense.
+
+---
+
+4. Installment Loan + Monthly Payment Schedule
+
+Create one Loan & Installment Engine.
+
+It handles:
+
+- Principal Amount
+- Interest
+- Number of Months
+- Start Date
+- Due Date
+- Monthly Payment
+- Remaining Balance
+- Payment Schedule
+- Payment History
+
+The engine must also define:
+
+- Borrower and lender direction
+- Principal amount
+- Interest amount and interest method
+- Fees, if any
+- Total payable amount
+- Payment frequency
+- Currency
+
+The schedule total is `principal + interest + fees`, not principal-only unless the loan explicitly has zero interest and fees.
+
+The engine automatically generates the monthly schedule.
+
+---
+
+5. Payment Amount Rounding
+
+The system must guarantee that the total scheduled payments equal the exact `total_payable` amount in the loan currency.
+
+Example:
+
+₱10,000 / 3 months:
+
+- Month 1: ₱3,333.33
+- Month 2: ₱3,333.33
+- Month 3: ₱3,333.34
+
+Final payment automatically receives the rounding adjustment. The system must never use floating-point values for this calculation. Store monetary values as PostgreSQL `numeric` with a defined scale, or as integer minor units.
+
+---
+
+6. Debt Status + Payment Status
+
+Separate debt status from payment status.
+
+Debt Status:
+
+- Pending
+- Active/Ongoing
+- Paid
+- Cancelled
+
+Payment Status:
+
+- Upcoming
+- Due
+- Partially Paid
+- Paid
+- Overdue
+
+This allows an active debt to have an overdue payment without incorrectly changing the entire debt status.
+
+---
+
+7. Partial Payments
+
+Debt payments support partial payment.
+
+Example:
+
+Debt: ₱5,000
+Payment: ₱2,000
+Remaining: ₱3,000
+
+Track:
+
+- Original Amount
+- Total Paid
+- Remaining Balance
+- Partial Payments
+- Payment History
+
+Each payment must record its allocation to principal, interest, fees, and any overpayment. Payment allocation must be deterministic and must not change after posting without an audited correction.
+
+---
+
+8. Notifications
+
+Remove the general Payment Notification requirement.
+
+Use only:
+
+Due Date Reminder
+
+The notification engine will monitor upcoming debt/installment due dates and send reminders.
+
+---
+
+9. Star / Priority
+
+Priority is independent from debt status.
+
+Use:
+
+Priority
+
+- Normal
+- Starred
+- High Priority
+
+Priority does not affect whether a debt is Pending, Active, Paid, or Overdue.
+
+---
+
+10. Admin vs Editor Permissions
+
+Do not depend only on fixed roles.
+
+Use granular permissions per user.
+
+Example permissions:
+
+- View Expenses
+- Create Expenses
+- Edit Expenses
+- Delete Expenses
+- View Debts
+- Create Debts
+- Edit Debts
+- Delete Debts
+- View Customers
+- Edit Customers
+- Manage Inventory
+- Manage Reports
+- Manage Users
+
+The Admin selects permissions individually for each user.
+
+Roles can exist as presets, but permissions determine actual access.
+
+Admin has full master permissions.
+
+---
+
+11. Admin Delete + Audit Logs
+
+Records should use Soft Delete instead of immediate physical deletion.
+
+Store:
+
+- deleted_at
+- deleted_by
+
+Every important action is recorded in the Audit Log:
+
+- User
+- Action
+- Record
+- Date/Time
+- Previous Value
+- New Value
+
+Example:
+
+"Admin deleted Expense #123"
+
+The audit record remains even after the original record is soft-deleted.
+
+Audit Logs are append-only. The server creates the authoritative audit event after accepting a mutation. Offline clients may create pending audit events, but they cannot mark them authoritative or edit/delete them.
+
+---
+
+12. Multiple Users + Secure Database Access
+
+Each Supabase authentication account is separated from the application's user/profile system.
+
+Architecture:
+
+Supabase Auth Account
+→ App User/Profile
+→ Workspace Membership
+→ Role
+→ Individual Permissions
+
+Database records must be associated with the correct workspace/profile.
+
+Use Supabase Row Level Security (RLS) so users cannot access records they are not authorized to access.
+
+---
+
+13. Family + Business Database
+
+Use a generic Workspace system instead of creating completely separate Family and Business database architectures.
+
+Workspace Types:
+
+- Personal
+- Family
+- Business
+
+A user can belong to multiple workspaces.
+
+Example:
+
+User
+→ Family Workspace
+→ Business Workspace
+
+Each workspace has its own members, permissions, financial accounts, transactions, debts, customers, etc.
+
+---
+
+14. Shared Payment Account
+
+Create a Financial Account system.
+
+A Financial Account can belong to a Workspace.
+
+Examples:
+
+- Cash
+- GCash
+- Bank Account
+- Shared Family Wallet
+- Business Cash
+- Petty Cash
+
+Transactions reference the Financial Account where the money came from or went to.
+
+---
+
+15. Financial Account Tracking
+
+Add a dedicated Financial Accounts module.
+
+Each account contains:
+
+- Account Name
+- Account Type
+- Starting Balance
+- Current Balance
+- Currency
+- Workspace
+- Owner/Access
+- Active/Inactive
+
+Example:
+
+GCash
+Starting Balance: ₱6,000
+
+The system calculates the current balance based on transactions.
+
+The authoritative current balance is calculated from posted ledger entries. Any cached current balance is a rebuildable projection only.
+
+---
+
+16. Account Transfers
+
+Add a Transfer transaction type.
+
+Example:
+
+GCash → Bank
+₱5,000
+
+This must NOT be recorded as:
+
+- Income
+- Expense
+
+Instead:
+
+Transfer
+
+- From Account
+- To Account
+- Amount
+- Date
+- Note
+
+This prevents double-counting money.
+
+---
+
+17. Budget + Expense Categories
+
+Every budget is connected to an expense category.
+
+Example:
+
+Food Budget: ₱5,000
+Food Expenses: ₱3,200
+Remaining Budget: ₱1,800
+
+Budget tracks:
+
+- Category
+- Budget Amount
+- Used Amount
+- Remaining Amount
+- Period
+
+---
+
+18. Category System
+
+Use separate category systems where necessary instead of forcing every type into one category table.
+
+Expense Categories
+
+- Food
+- Transportation
+- Bills
+- Shopping
+- etc.
+
+Income Categories
+
+- Salary
+- Business
+- Freelance
+- Other Income
+
+Debt Categories
+
+- Personal
+- Loan
+- Credit
+- Installment
+
+Business Categories
+
+- Sales
+- Operating Expenses
+- Cost of Goods
+
+Products and Customers should have their own dedicated entities instead of being treated as transaction categories.
+
+---
+
+19. Customer + Debtor Relationship
+
+A customer can also become a debtor.
+
+Example:
+
+Customer: Juan
+Purchase: ₱5,000
+Paid: ₱2,000
+Remaining: ₱3,000
+
+The system should allow:
+
+Customer → Debt
+
+without creating duplicate customer/person records.
+
+---
+
+20. Business Sales + Income
+
+Sales generate business revenue, but the system must avoid duplicate income entries.
+
+Recommended flow:
+
+Sale
+→ Payment
+→ Financial Transaction
+
+The Sale becomes the source record for revenue. A unique source reference must prevent the same sale or payment from being posted more than once.
+
+The system must not count the same sale twice as both Sales Revenue and separate Income.
+
+Profit calculation will use the appropriate business revenue and cost records. Sales must support unpaid, partially paid, paid, cancelled, returned, and refunded states. A sale payment may create a receivable settlement without creating duplicate revenue.
+
+---
+
+21. Inventory + Sales
+
+Inventory must be connected to Sales.
+
+Example:
+
+Stock: 100
+Sold: 5
+Remaining: 95
+
+Use inventory movement records:
+
+- Stock In
+- Sale
+- Return
+- Adjustment
+- Damaged
+
+Do not simply overwrite stock without keeping the movement history.
+
+---
+
+22. Profit Calculation
+
+Profit Management must separate:
+
+- Revenue
+- Cost of Goods Sold
+- Operating Expenses
+- Gross Profit
+- Net Profit
+
+This prevents personal expenses from incorrectly affecting business profit.
+
+---
+
+23. Receipt/File Attachments
+
+Use Supabase Storage for receipt and file uploads.
+
+The database stores only the file metadata:
+
+- File ID
+- Storage Path
+- File Name
+- File Type
+- Uploaded By
+- Related Record
+- Created Date
+
+Receipts can be attached to expenses, debts, payments, sales, or other supported records.
+
+---
+
+24. OCR Receipt Scanner
+
+OCR workflow:
+
+Camera/Upload Receipt
+→ OCR Processing
+→ Detect Date/Amount/Merchant/Category
+→ User Confirmation
+→ Save Transaction
+
+OCR results must require user confirmation before creating a financial record.
+
+---
+
+25. Voice Input
+
+Voice workflow:
+
+Voice Input
+→ Speech-to-Text
+→ Transaction Interpretation
+→ User Confirmation
+→ Save
+
+Example:
+
+"Add 500 pesos food expense."
+
+The app converts it into a proposed expense but requires confirmation before saving.
+
+---
+
+26. AI Spending Analysis
+
+AI is an analysis feature only.
+
+Architecture:
+
+Transactions
+→ Analytics
+→ AI Analysis
+→ User Insights
+
+AI must not directly modify financial records.
+
+---
+
+27. Offline-First Architecture
+
+The local database is the primary source for the Android UI.
+
+Architecture:
+
+Android Local Database
+→ Sync Queue
+→ Supabase
+→ Realtime Updates
+→ Local Database
+
+The application must remain usable without internet.
+
+---
+
+28. Offline Sync Queue
+
+Every offline change is placed into a sync queue.
+
+Sync information includes:
+
+- Record ID
+- Operation
+- Created/Updated Time
+- User
+- Device
+- Sync Status
+- Retry Count
+- Error Information
+
+Every queued mutation must also include:
+
+- Globally unique Operation ID for idempotency
+- Client Sequence Number
+- Entity Version observed by the client
+- Schema Version
+- Tombstone information for deletes
+
+When internet returns, queued operations are synchronized automatically.
+
+---
+
+29. Sync Conflict Resolution
+
+If two devices modify the same record while offline, the system must detect the conflict.
+
+Use:
+
+- Record ID
+- Version
+- Updated Timestamp
+- Device ID
+- Sync Status
+
+Use Last-Write-Wins only for suitable non-financial metadata, such as labels or notes.
+
+For financial records, payments, sales, transfers, ledger entries, inventory movements, and audit events, use append-only operations. Never silently overwrite posted financial history. Conflicts must be recorded with a visible conflict status and resolved through a new compensating or correction event.
+
+The server assigns the authoritative version and processing time. Retries must be safe through the Operation ID, and out-of-order events must not resurrect deleted records or create duplicate ledger entries.
+
+---
+
+30. Delete Synchronization
+
+Soft-delete states must also synchronize.
+
+Example:
+
+Device A deletes a record offline.
+
+When synchronized:
+
+"deleted_at" and "deleted_by" are uploaded.
+
+Other devices receive the deletion state through synchronization.
+
+Deletes use tombstones with a deletion version. A stale update cannot restore a deleted record. Restoration, if supported, is an explicit authorized operation that creates an audit event.
+
+---
+
+31. Audit Log Synchronization
+
+Audit Logs must also work offline.
+
+Example:
+
+User edits an expense without internet.
+
+The action is stored locally.
+
+When internet returns:
+
+Local Audit Log
+→ Sync Queue
+→ Supabase
+
+The local event remains pending until the server accepts the related mutation. Server audit logs are immutable and authoritative.
+
+---
+
+32. Cross-Device Restoration
+
+New device workflow:
+
+Login with Supabase Auth
+→ Identify User
+→ Load Workspaces
+→ Load Memberships
+→ Load Permissions
+→ Download Authorized Data
+→ Populate Local Database
+→ Start Sync
+
+The same account restores the user's authorized data on another device.
+
+---
+
+33. Supabase Security
+
+Security must be enforced server-side.
+
+Use:
+
+Supabase Row Level Security (RLS)
+
+RLS checks:
+
+- Auth User
+- App Profile
+- Workspace Membership
+- Role
+- Permission
+
+Hiding a button in the Android UI is not considered sufficient security.
+
+Use a server-side `has_workspace_permission(auth.uid(), workspace_id, permission_code)` policy function with default deny. The permission evaluation must define how workspace owner, admin, role presets, and per-user overrides interact. A client must never be able to grant its own permission or submit an audit event as authoritative.
+
+---
+
+34. Dashboard
+
+Dashboard should show:
+
+- Total Cash
+- Net Worth
+- Cash Flow for the selected period
+- Total Expenses
+- Total Debts
+- Upcoming Payments
+- Recent Transactions
+
+Dashboard data should come from optimized local queries/cached summaries to keep the UI fast.
+
+---
+
+35. Financial Precision
+
+Never use floating-point values such as "Double" for money calculations.
+
+Use PostgreSQL "numeric" or fixed-precision integer representation.
+
+All calculations must maintain exact monetary values. Posted financial values must be immutable; corrections use compensating entries rather than direct edits.
+
+---
+
+36. Currency
+
+Initial currency:
+
+PHP
+
+But the database should support:
+
+- Amount
+- Currency Code
+
+Default:
+
+"PHP"
+
+This allows future multi-currency support without redesigning the database.
+
+Do not add amounts in different currencies without conversion. Store:
+
+- Transaction currency
+- Account currency
+- Workspace/reporting currency
+- Exchange rate and rate date/source when conversion is used
+- FX gain/loss treatment
+
+For the initial release, a workspace may be restricted to PHP to avoid unsupported cross-currency totals.
+
+---
+
+37. Date & Time
+
+Use consistent timestamps.
+
+User timezone should be supported.
+
+Initial default timezone:
+
+Asia/Manila
+
+This is especially important for due dates, payment schedules, notifications, and synchronization.
+
+Store event timestamps in UTC. Store due dates as local calendar dates with the relevant user/workspace timezone. Server ordering must use server timestamps, not device clocks.
+
+---
+
+38. Due-Date Notification Engine
+
+Due-date reminders must be generated from payment schedules.
+
+The system checks:
+
+- Due Date
+- Payment Status
+- User
+- Workspace
+- Notification History
+
+It must prevent duplicate reminders across multiple devices.
+
+Define the reminder policy explicitly, including reminder offsets, overdue behavior, timezone, snooze/cancel rules, partial-payment behavior, and a unique key such as `schedule_id + reminder_type + occurrence_date`.
+
+---
+
+39. Home Screen Widget
+
+The Android widget should read summarized data from the local database.
+
+Architecture:
+
+Supabase
+→ Local Database
+→ Widget
+
+The widget should continue displaying available information even when the phone is offline.
+
+---
+
+40. Web Version
+
+The future Web Version must use the same backend architecture:
+
+- Supabase Auth
+- Supabase Database
+- Supabase Storage
+- RLS
+- Shared Data Model
+- Same Workspace/Permission System
+
+Android and Web should not maintain separate financial databases.
+
+---
+
+CORE ARCHITECTURE
+
+The central structure of the application will be:
+
+Auth Account
+→ User/Profile
+→ Workspace
+→ Membership
+→ Role/Permissions
+→ Financial Accounts
+→ Transactions
+→ Debts/Loans
+→ Payments
+→ Budgets
+→ Business/Sales/Inventory
+→ Reports/Analytics
+
+With:
+
+Local Database
+↔ Sync Queue
+↔ Supabase
+
+And:
+
+Supabase RLS + Audit Logs + Soft Delete
+for security and accountability.
+
+CRITICAL RULES
+
+1. Admin permissions are granular and configurable per user.
+2. Admin has full master permissions.
+3. Users cannot access another workspace's data without authorization.
+4. Only authorized users can edit records.
+5. Delete operations use Soft Delete.
+6. Audit Logs remain even after deletion.
+7. Debt Payments are separate from ordinary Expenses.
+8. Transfers are separate from Income and Expenses.
+9. Sales must not create duplicate Income.
+10. Financial transactions use exact monetary calculations.
+11. Offline changes must enter the Sync Queue.
+12. Financial records must have conflict-safe synchronization.
+13. OCR and Voice Input require confirmation before saving.
+14. AI can analyze data but cannot directly modify financial records.
+15. Supabase RLS is the final server-side security layer.
+
+---
+
+IMPLEMENTATION-SAFE FINANCIAL RULES
+
+The following rules are mandatory before implementing the database, API, or sync layer.
+
+1. Canonical Financial Model
+
+Use a source-document plus posted-ledger model:
+
+- Source documents: expenses, income, sales, loans, debts, payments, transfers, and adjustments
+- Posted ledger transaction: immutable financial effect created from a source document
+- Ledger entries: signed entries against financial accounts and liability/equity/revenue/expense accounts
+
+Every posted ledger transaction must have a unique source reference. A source document may be corrected only by a compensating transaction or an audited reversal. Direct edits to posted financial amounts are not allowed.
+
+2. Posting Rules
+
+- Income increases an asset account and revenue/income reporting, unless it is a non-income adjustment.
+- Expense decreases an asset account and increases the selected expense category.
+- Loan or debt received increases an asset account and a liability account; it does not create profit.
+- Principal repayment decreases an asset account and the related liability; it does not create an ordinary expense.
+- Interest and loan fees decrease an asset account and increase an interest/fee expense account.
+- Transfer decreases the source financial account and increases the destination financial account by the same amount and currency.
+- Sale creates revenue and, when applicable, a receivable; payment settles the receivable and updates the financial account without duplicating revenue.
+- Inventory sale creates the appropriate inventory reduction and Cost of Goods Sold entry.
+
+3. Balance and Profit Invariants
+
+- The sum of scheduled payment allocations equals `total_payable` exactly.
+- Total paid never exceeds the allowed balance unless an explicit overpayment state exists.
+- A transfer has zero net effect on Total Cash and Net Worth.
+- A debt payment is linked to exactly one debt or installment schedule unless the product explicitly supports an allocation transaction.
+- Personal expenses are excluded from business profit unless explicitly posted to the business workspace/category.
+- Every posted ledger transaction is balanced; total debits equal total credits in the transaction currency.
+- Rebuilding all projections from source documents and posted ledger entries produces the same balances and reports.
+
+4. Debt and Payment State Rules
+
+- Debt status and payment status are independent.
+- Debt `Paid` is derived only when the debt balance reaches zero and all required allocations are settled.
+- A debt may remain `Active/Ongoing` while one or more installments are `Overdue`.
+- A partial payment updates the installment allocation and payment history but does not mark the installment `Paid` until its required amount is fully allocated.
+- Cancelled or reversed payments must retain their original history and create an audited correction event.
+
+5. Offline Mutation Contract
+
+Every local mutation must be committed atomically with its local outbox item. The server must process the outbox idempotently using `operation_id`, validate the user's current workspace permission, validate the entity version, and return an authoritative result.
+
+- Accepted mutations create server-authoritative audit events.
+- Rejected mutations remain visible locally with an error and resolution state.
+- Duplicate retries return the original result instead of creating another financial effect.
+- Financial conflicts never use silent Last-Write-Wins.
+- Delete tombstones prevent stale updates from resurrecting records.
+
+6. Security and Privacy Rules
+
+- Every workspace-owned record has a workspace identifier and is protected by RLS.
+- RLS is enforced on tables, views, RPC functions, and Storage objects.
+- Storage paths must include the workspace identifier and must not be trusted as authorization by themselves.
+- Local databases and cached credentials must use platform-secure storage/encryption where available.
+- OCR, voice, and AI inputs must have a documented retention policy and must not create or modify a financial record without user confirmation and server validation.
+
+7. Required Test Scenarios
+
+Before release, automated tests must cover at least:
+
+- Transfer between two accounts without changing Net Worth
+- Loan receipt, principal payment, interest payment, and final rounding adjustment
+- Partial payment followed by full settlement
+- Duplicate sale/payment retry using the same Operation ID
+- Offline create/update/delete and reconnect synchronization
+- Concurrent updates and financial conflict handling
+- Soft-delete tombstone preventing stale resurrection
+- RLS denial for an unauthorized workspace member
+- Audit preservation after soft delete
+- Currency mismatch rejection or explicit conversion
+- Rebuild of account balances and profit reports from the ledger
