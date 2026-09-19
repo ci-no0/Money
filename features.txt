@@ -163,7 +163,9 @@ Implementation status:
 - Payment ledger entries distinguish payable debt reduction from receivable collection and interest/fee effects.
 - Initial debt receipt or loan funding now has an idempotency-checked server posting flow tied to a selected financial account.
 - Unpaid schedules refresh to `due` or `overdue` using the server date when the debt screen loads.
-- Payment reversal and overpayment handling remain separate mutations and must not be simulated by editing schedule rows directly.
+- Payment reversal now creates a compensating ledger transaction, marks the original payment as reversed, recalculates installment/debt status, and preserves an audit event.
+- The Debts screen shows payment history and allows an authorized user to reverse a selected payment through the server RPC.
+- Overpayment handling remains a separate explicit mutation and must not be simulated by editing schedule rows directly.
 
 ---
 

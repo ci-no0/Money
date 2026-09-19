@@ -35,13 +35,14 @@ begin
         raise exception 'Debt was not found or is cancelled';
     end if;
 
-    if exists (
-        select 1 from public.ledger_transactions lt
-        where lt.source_type = 'debt_receipt'
-          and lt.source_id = requested_debt
-    ) then
-        raise exception 'Debt receipt has already been posted';
-    end if;
+        select lt.id
+            into ledger_transaction_id
+            from public.ledger_transactions lt
+         where lt.source_type = 'debt_receipt'
+             and lt.source_id = requested_debt;
+        if ledger_transaction_id is not null then
+                return ledger_transaction_id;
+        end if;
 
     select fa.currency, la.id
       into account_currency, asset_ledger_id

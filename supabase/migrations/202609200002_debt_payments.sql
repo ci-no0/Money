@@ -1,6 +1,10 @@
 -- Partial debt payments with deterministic installment allocation.
 -- Run after 202609200001_debts.sql.
 
+alter table public.payments
+    add column if not exists reversed_at timestamptz,
+    add column if not exists reversed_by uuid references public.profiles(id);
+
 create or replace function public.create_debt_payment(
     requested_workspace uuid,
     requested_debt uuid,
@@ -78,8 +82,10 @@ begin
       into outstanding
       from public.installment_schedules s
       left join (
-          select installment_id, sum(principal_amount + interest_amount + fee_amount) as allocated_amount
-          from public.payment_allocations
+          select pa.installment_id, sum(pa.principal_amount + pa.interest_amount + pa.fee_amount) as allocated_amount
+          from public.payment_allocations pa
+          join public.payments p on p.id = pa.payment_id
+          where p.reversed_at is null
           group by installment_id
       ) a on a.installment_id = s.id
      where s.debt_id = requested_debt;
@@ -108,8 +114,10 @@ begin
                coalesce(sum(pa.interest_amount), 0),
                coalesce(sum(pa.fee_amount), 0)
           into existing_principal, existing_interest, existing_fee
-          from public.payment_allocations pa
-         where pa.installment_id = schedule_record.id;
+                    from public.payment_allocations pa
+                    join public.payments p on p.id = pa.payment_id
+                 where pa.installment_id = schedule_record.id
+                     and p.reversed_at is null;
 
         required_amount := schedule_record.required_amount;
         installment_remaining := required_amount - existing_principal - existing_interest - existing_fee;
@@ -151,10 +159,14 @@ begin
     update public.installment_schedules s
        set status = case
            when coalesce((select sum(pa.principal_amount + pa.interest_amount + pa.fee_amount)
-                          from public.payment_allocations pa where pa.installment_id = s.id), 0) >= s.required_amount
+                          from public.payment_allocations pa
+                          join public.payments p on p.id = pa.payment_id
+                          where pa.installment_id = s.id and p.reversed_at is null), 0) >= s.required_amount
                then 'paid'::public.payment_status
            when coalesce((select sum(pa.principal_amount + pa.interest_amount + pa.fee_amount)
-                          from public.payment_allocations pa where pa.installment_id = s.id), 0) > 0
+                          from public.payment_allocations pa
+                          join public.payments p on p.id = pa.payment_id
+                          where pa.installment_id = s.id and p.reversed_at is null), 0) > 0
                then 'partially_paid'::public.payment_status
            else s.status
        end

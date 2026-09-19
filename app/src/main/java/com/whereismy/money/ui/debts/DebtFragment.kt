@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.whereismy.money.R
 import com.whereismy.money.data.Debt
+import com.whereismy.money.data.DebtPayment
 import com.whereismy.money.data.FinancialAccount
 import com.whereismy.money.data.Workspace
 import com.whereismy.money.databinding.FragmentDebtBinding
@@ -29,6 +30,7 @@ class DebtFragment : Fragment() {
     private var activeWorkspaceId: String? = null
     private var debts: List<Debt> = emptyList()
     private var accounts: List<FinancialAccount> = emptyList()
+    private var payments: List<DebtPayment> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,6 +41,7 @@ class DebtFragment : Fragment() {
         binding.createDebtButton.setOnClickListener { createDebt() }
         binding.createPaymentButton.setOnClickListener { createPayment() }
         binding.postReceiptButton.setOnClickListener { postReceipt() }
+        binding.reversePaymentButton.setOnClickListener { reversePayment() }
         loadWorkspaceAndDebts()
         return binding.root
     }
@@ -59,11 +62,15 @@ class DebtFragment : Fragment() {
                 val accounts = supabaseClient.from("financial_accounts")
                     .select().decodeList<FinancialAccount>()
                     .filter { it.workspace_id == workspace.id && it.is_active }
-                Triple(workspace.id, debts.filterNot { it.status == "cancelled" }, accounts)
-            }.onSuccess { (workspaceId, loadedDebts, loadedAccounts) ->
+                val payments = supabaseClient.from("payments")
+                    .select().decodeList<DebtPayment>()
+                Triple(workspace.id, debts.filterNot { it.status == "cancelled" }, accounts) to payments
+            }.onSuccess { (workspaceData, loadedPayments) ->
+                val (workspaceId, loadedDebts, loadedAccounts) = workspaceData
                 activeWorkspaceId = workspaceId
                 debts = loadedDebts
                 accounts = loadedAccounts
+                payments = loadedPayments
                 binding.debtList.text = if (debts.isEmpty()) {
                     getString(R.string.no_debts)
                 } else {
@@ -79,10 +86,57 @@ class DebtFragment : Fragment() {
                     requireContext(), android.R.layout.simple_spinner_dropdown_item,
                     accounts.map { "${it.name} (${it.currency})" },
                 )
+                binding.paymentHistory.text = if (payments.isEmpty()) {
+                    getString(R.string.no_payments)
+                } else {
+                    payments.joinToString("\n") { payment ->
+                        val debtTitle = debts.firstOrNull { it.id == payment.debt_id }?.title ?: payment.debt_id
+                        val state = if (payment.reversed_at == null) "posted" else "reversed"
+                        "$debtTitle: ${payment.currency} ${payment.amount.jsonPrimitive.content} ($state)"
+                    }
+                }
+                binding.paymentHistorySpinner.adapter = ArrayAdapter(
+                    requireContext(), android.R.layout.simple_spinner_dropdown_item,
+                    payments.map { payment ->
+                        val debtTitle = debts.firstOrNull { it.id == payment.debt_id }?.title ?: payment.debt_id
+                        "$debtTitle: ${payment.currency} ${payment.amount.jsonPrimitive.content}"
+                    },
+                )
                 binding.createPaymentButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
                 binding.postReceiptButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
+                binding.reversePaymentButton.isEnabled = payments.any { it.reversed_at == null }
                 binding.debtStatus.setText(R.string.debt_ready)
             }.onFailure { showError(it) }
+        }
+    }
+
+    private fun reversePayment() {
+        val workspaceId = activeWorkspaceId
+        val payment = payments.getOrNull(binding.paymentHistorySpinner.selectedItemPosition)
+        if (workspaceId == null || payment == null) {
+            binding.debtStatus.setText(R.string.no_payment_to_reverse)
+            return
+        }
+        if (payment.reversed_at != null) {
+            binding.debtStatus.setText(R.string.payment_already_reversed)
+            return
+        }
+
+        binding.reversePaymentButton.isEnabled = false
+        viewLifecycleOwner.lifecycleScope.launch {
+            runCatching {
+                supabaseClient.postgrest.rpc(
+                    "reverse_debt_payment",
+                    parameters = buildJsonObject {
+                        put("requested_workspace", workspaceId)
+                        put("requested_payment", payment.id)
+                    },
+                )
+            }.onSuccess {
+                binding.debtStatus.setText(R.string.payment_reversed)
+                loadWorkspaceAndDebts()
+            }.onFailure { showError(it) }
+            binding.reversePaymentButton.isEnabled = payments.any { it.reversed_at == null }
         }
     }
 
@@ -207,6 +261,7 @@ class DebtFragment : Fragment() {
         binding.createDebtButton.isEnabled = true
         binding.createPaymentButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
         binding.postReceiptButton.isEnabled = debts.isNotEmpty() && accounts.isNotEmpty()
+        binding.reversePaymentButton.isEnabled = payments.any { it.reversed_at == null }
     }
 
     override fun onDestroyView() {
