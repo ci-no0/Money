@@ -5,15 +5,32 @@
 
 create extension if not exists pgcrypto;
 
-create type public.workspace_type as enum ('personal', 'family', 'business');
-create type public.member_status as enum ('active', 'invited', 'suspended');
-create type public.permission_effect as enum ('allow', 'deny');
-create type public.ledger_account_type as enum ('asset', 'liability', 'equity', 'revenue', 'expense');
-create type public.debt_status as enum ('pending', 'active', 'paid', 'cancelled');
-create type public.payment_status as enum ('upcoming', 'due', 'partially_paid', 'paid', 'overdue', 'cancelled');
-create type public.sync_status as enum ('pending', 'processing', 'synced', 'conflict', 'rejected');
+do $$
+begin
+    if not exists (select 1 from pg_type where typname = 'workspace_type' and typnamespace = 'public'::regnamespace) then
+        create type public.workspace_type as enum ('personal', 'family', 'business');
+    end if;
+    if not exists (select 1 from pg_type where typname = 'member_status' and typnamespace = 'public'::regnamespace) then
+        create type public.member_status as enum ('active', 'invited', 'suspended');
+    end if;
+    if not exists (select 1 from pg_type where typname = 'permission_effect' and typnamespace = 'public'::regnamespace) then
+        create type public.permission_effect as enum ('allow', 'deny');
+    end if;
+    if not exists (select 1 from pg_type where typname = 'ledger_account_type' and typnamespace = 'public'::regnamespace) then
+        create type public.ledger_account_type as enum ('asset', 'liability', 'equity', 'revenue', 'expense');
+    end if;
+    if not exists (select 1 from pg_type where typname = 'debt_status' and typnamespace = 'public'::regnamespace) then
+        create type public.debt_status as enum ('pending', 'active', 'paid', 'cancelled');
+    end if;
+    if not exists (select 1 from pg_type where typname = 'payment_status' and typnamespace = 'public'::regnamespace) then
+        create type public.payment_status as enum ('upcoming', 'due', 'partially_paid', 'paid', 'overdue', 'cancelled');
+    end if;
+    if not exists (select 1 from pg_type where typname = 'sync_status' and typnamespace = 'public'::regnamespace) then
+        create type public.sync_status as enum ('pending', 'processing', 'synced', 'conflict', 'rejected');
+    end if;
+end $$;
 
-create table public.profiles (
+create table if not exists public.profiles (
     id uuid primary key references auth.users(id) on delete cascade,
     display_name text,
     timezone text not null default 'Asia/Manila',
@@ -21,7 +38,7 @@ create table public.profiles (
     updated_at timestamptz not null default now()
 );
 
-create table public.workspaces (
+create table if not exists public.workspaces (
     id uuid primary key default gen_random_uuid(),
     name text not null check (length(trim(name)) > 0),
     workspace_type public.workspace_type not null,
@@ -32,7 +49,7 @@ create table public.workspaces (
     updated_at timestamptz not null default now()
 );
 
-create table public.roles (
+create table if not exists public.roles (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     name text not null,
@@ -41,7 +58,7 @@ create table public.roles (
     unique (workspace_id, name)
 );
 
-create table public.permissions (
+create table if not exists public.permissions (
     code text primary key,
     description text not null
 );
@@ -61,7 +78,7 @@ insert into public.permissions (code, description) values
     ('manage_attachments', 'Upload and view attachments')
 on conflict (code) do nothing;
 
-create table public.workspace_members (
+create table if not exists public.workspace_members (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     user_id uuid not null references public.profiles(id) on delete cascade,
@@ -71,13 +88,13 @@ create table public.workspace_members (
     unique (workspace_id, user_id)
 );
 
-create table public.role_permissions (
+create table if not exists public.role_permissions (
     role_id uuid not null references public.roles(id) on delete cascade,
     permission_code text not null references public.permissions(code),
     primary key (role_id, permission_code)
 );
 
-create table public.member_permissions (
+create table if not exists public.member_permissions (
     member_id uuid not null references public.workspace_members(id) on delete cascade,
     permission_code text not null references public.permissions(code),
     effect public.permission_effect not null,
@@ -151,7 +168,7 @@ as $$
     );
 $$;
 
-create table public.financial_accounts (
+create table if not exists public.financial_accounts (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     name text not null,
@@ -166,7 +183,7 @@ create table public.financial_accounts (
     updated_at timestamptz not null default now()
 );
 
-create table public.ledger_accounts (
+create table if not exists public.ledger_accounts (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     financial_account_id uuid references public.financial_accounts(id) on delete restrict,
@@ -177,7 +194,7 @@ create table public.ledger_accounts (
     unique (workspace_id, name)
 );
 
-create table public.ledger_transactions (
+create table if not exists public.ledger_transactions (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     source_type text not null,
@@ -190,7 +207,7 @@ create table public.ledger_transactions (
     unique (source_type, source_id)
 );
 
-create table public.ledger_entries (
+create table if not exists public.ledger_entries (
     id uuid primary key default gen_random_uuid(),
     ledger_transaction_id uuid not null references public.ledger_transactions(id) on delete restrict,
     ledger_account_id uuid not null references public.ledger_accounts(id) on delete restrict,
@@ -200,7 +217,7 @@ create table public.ledger_entries (
     check ((debit > 0 and credit = 0) or (credit > 0 and debit = 0))
 );
 
-create table public.debts (
+create table if not exists public.debts (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     debtor_profile_id uuid references public.profiles(id),
@@ -221,7 +238,7 @@ create table public.debts (
     updated_at timestamptz not null default now()
 );
 
-create table public.installment_schedules (
+create table if not exists public.installment_schedules (
     id uuid primary key default gen_random_uuid(),
     debt_id uuid not null references public.debts(id) on delete cascade,
     installment_number integer not null check (installment_number > 0),
@@ -234,7 +251,7 @@ create table public.installment_schedules (
     unique (debt_id, installment_number)
 );
 
-create table public.payments (
+create table if not exists public.payments (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     debt_id uuid not null references public.debts(id) on delete restrict,
@@ -246,7 +263,7 @@ create table public.payments (
     created_at timestamptz not null default now()
 );
 
-create table public.payment_allocations (
+create table if not exists public.payment_allocations (
     payment_id uuid not null references public.payments(id) on delete restrict,
     installment_id uuid not null references public.installment_schedules(id) on delete restrict,
     principal_amount numeric(20, 2) not null default 0 check (principal_amount >= 0),
@@ -255,7 +272,7 @@ create table public.payment_allocations (
     primary key (payment_id, installment_id)
 );
 
-create table public.audit_logs (
+create table if not exists public.audit_logs (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     actor_user_id uuid references public.profiles(id),
@@ -268,7 +285,7 @@ create table public.audit_logs (
     server_recorded_at timestamptz not null default now()
 );
 
-create table public.sync_operations (
+create table if not exists public.sync_operations (
     operation_id uuid primary key,
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     record_type text not null,
@@ -285,7 +302,7 @@ create table public.sync_operations (
     processed_at timestamptz
 );
 
-create table public.attachments (
+create table if not exists public.attachments (
     id uuid primary key default gen_random_uuid(),
     workspace_id uuid not null references public.workspaces(id) on delete cascade,
     storage_path text not null,
@@ -396,6 +413,23 @@ alter table public.audit_logs enable row level security;
 alter table public.sync_operations enable row level security;
 alter table public.attachments enable row level security;
 
+drop policy if exists profiles_self_select on public.profiles;
+drop policy if exists workspaces_select on public.workspaces;
+drop policy if exists members_select on public.workspace_members;
+drop policy if exists roles_select on public.roles;
+drop policy if exists permissions_select on public.permissions;
+drop policy if exists accounts_select on public.financial_accounts;
+drop policy if exists ledger_accounts_select on public.ledger_accounts;
+drop policy if exists ledger_transactions_select on public.ledger_transactions;
+drop policy if exists ledger_entries_select on public.ledger_entries;
+drop policy if exists debts_select on public.debts;
+drop policy if exists schedules_select on public.installment_schedules;
+drop policy if exists payments_select on public.payments;
+drop policy if exists allocations_select on public.payment_allocations;
+drop policy if exists audit_logs_select on public.audit_logs;
+drop policy if exists sync_operations_select on public.sync_operations;
+drop policy if exists attachments_select on public.attachments;
+
 create policy profiles_self_select on public.profiles for select using (id = auth.uid());
 create policy workspaces_select on public.workspaces for select using (public.has_workspace_permission(auth.uid(), id, 'view_workspace'));
 create policy members_select on public.workspace_members for select using (public.has_workspace_permission(auth.uid(), workspace_id, 'view_workspace'));
@@ -441,9 +475,20 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_user();
 
-create index financial_accounts_workspace_idx on public.financial_accounts(workspace_id) where deleted_at is null;
-create index ledger_transactions_workspace_posted_idx on public.ledger_transactions(workspace_id, posted_at);
-create index debts_workspace_status_idx on public.debts(workspace_id, status) where deleted_at is null;
-create index schedules_due_date_idx on public.installment_schedules(due_date, status);
-create index audit_logs_workspace_time_idx on public.audit_logs(workspace_id, server_recorded_at desc);
-create index sync_operations_status_idx on public.sync_operations(workspace_id, status);
+create index if not exists financial_accounts_workspace_idx on public.financial_accounts(workspace_id) where deleted_at is null;
+create index if not exists ledger_transactions_workspace_posted_idx on public.ledger_transactions(workspace_id, posted_at);
+create index if not exists debts_workspace_status_idx on public.debts(workspace_id, status) where deleted_at is null;
+create index if not exists schedules_due_date_idx on public.installment_schedules(due_date, status);
+create index if not exists audit_logs_workspace_time_idx on public.audit_logs(workspace_id, server_recorded_at desc);
+create index if not exists sync_operations_status_idx on public.sync_operations(workspace_id, status);
+
+grant usage on schema public to anon;
+grant usage on schema public to authenticated;
+
+grant select, insert, update, delete on all tables in schema public to authenticated;
+grant usage, select, update on all sequences in schema public to authenticated;
+grant execute on all functions in schema public to authenticated;
+
+alter default privileges in schema public grant select, insert, update, delete on tables to authenticated;
+alter default privileges in schema public grant usage, select, update on sequences to authenticated;
+alter default privileges in schema public grant execute on functions to authenticated;

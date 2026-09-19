@@ -83,11 +83,15 @@ begin
        and d.deleted_at is null
        and d.status <> 'cancelled';
 
-    select coalesce(sum(e.amount), 0)
-      into expense_total
-      from public.expenses e
-     where e.workspace_id = requested_workspace
-       and e.deleted_at is null;
+    if to_regclass('public.expenses') is not null then
+        select coalesce(sum(e.amount), 0)
+          into expense_total
+          from public.expenses e
+         where e.workspace_id = requested_workspace
+           and e.deleted_at is null;
+    else
+        expense_total := 0;
+    end if;
 
     select coalesce(sum(
         case
