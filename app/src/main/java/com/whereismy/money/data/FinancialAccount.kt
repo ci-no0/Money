@@ -7,6 +7,7 @@ import kotlinx.serialization.json.JsonPrimitive
 @Serializable
 data class FinancialAccount(
     val id: String,
+    val workspace_id: String = "",
     val name: String,
     val account_type: String,
     val currency: String = "PHP",

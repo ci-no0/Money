@@ -52,6 +52,14 @@ Transaction Types:
 
 A Debt Payment must be linked to the specific debt and must not automatically become an ordinary Expense.
 
+Implementation status:
+
+- Expense creation is posted through a server-side RPC.
+- The RPC creates the source expense, validates the workspace permission and financial account, and posts a balanced ledger transaction.
+- Expense categories are workspace-scoped and reusable.
+- Each created expense produces an authoritative audit log entry.
+- Debt payments remain a separate implementation slice and must use the debt/payment allocation rules below.
+
 ---
 
 4. Installment Loan + Monthly Payment Schedule

@@ -15,6 +15,17 @@
     <string name="menu_reports">Profit &amp; Reports</string>
     <string name="menu_business">Business</string>
     <string name="section_planned">This section is planned for the next implementation slice.</string>
+    <string name="transaction_loading">Loading accounts...</string>
+    <string name="transaction_ready">Ready to record an expense.</string>
+    <string name="transaction_error">Unable to load transactions.</string>
+    <string name="no_accounts_for_transaction">Create an active financial account first.</string>
+    <string name="expense_category">Expense category</string>
+    <string name="expense_amount">Amount (PHP)</string>
+    <string name="expense_note">Note (optional)</string>
+    <string name="create_expense">Save expense</string>
+    <string name="expense_category_required">Enter an expense category.</string>
+    <string name="invalid_expense_amount">Enter an amount greater than zero.</string>
+    <string name="expense_created">Expense saved and posted to the ledger.</string>
     <string name="app_name">Where is my Money</string>
     <string name="auth_title">Money Tracker</string>
     <string name="email">Email</string>
