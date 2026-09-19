@@ -147,17 +147,17 @@ begin
         group by b.id, b.name, b.category, b.amount, b.budget_month
     )
     select
-        budget_name,
-        category,
-        budget_amount,
-        spent_amount,
-        budget_amount - spent_amount as remaining_amount,
+        br.budget_name,
+        br.category,
+        br.budget_amount,
+        br.spent_amount,
+        br.budget_amount - br.spent_amount as remaining_amount,
         case
-            when budget_amount = 0 then 0
-            else round((spent_amount / budget_amount) * 100, 2)
+            when br.budget_amount = 0 then 0
+            else round((br.spent_amount / br.budget_amount) * 100, 2)
         end as percent_used
-    from budget_rows
-    order by budget_month desc, category;
+    from budget_rows br
+    order by br.budget_month desc, br.category;
 end;
 $$;
 

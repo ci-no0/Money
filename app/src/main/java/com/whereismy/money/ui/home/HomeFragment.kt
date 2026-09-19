@@ -176,6 +176,15 @@ class HomeFragment : Fragment() {
             is Map<*, *> -> listOf(response)
             else -> emptyList<Any?>()
         }
+        if (rows.isEmpty()) {
+            return mapOf(
+                "total_cash" to "0.00",
+                "total_debts" to "0.00",
+                "total_expenses" to "0.00",
+                "net_worth" to "0.00",
+                "cash_flow" to "0.00",
+            )
+        }
         val first = rows.firstOrNull() as? Map<*, *> ?: error("Dashboard summary is empty")
         return first.entries.associate { (key, value) ->
             key.toString() to value

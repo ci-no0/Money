@@ -50,7 +50,23 @@ class ReportFragment : Fragment() {
                     is Map<*, *> -> listOf(dashboard)
                     else -> emptyList<Any?>()
                 }
-                val summary = summaryRows.firstOrNull() as? Map<*, *> ?: error("Dashboard summary is empty")
+                val summary = if (summaryRows.isEmpty()) {
+                    mapOf(
+                        "total_cash" to "0.00",
+                        "total_debts" to "0.00",
+                        "total_expenses" to "0.00",
+                        "net_worth" to "0.00",
+                        "cash_flow" to "0.00",
+                    )
+                } else {
+                    summaryRows.firstOrNull() as? Map<*, *> ?: mapOf(
+                        "total_cash" to "0.00",
+                        "total_debts" to "0.00",
+                        "total_expenses" to "0.00",
+                        "net_worth" to "0.00",
+                        "cash_flow" to "0.00",
+                    )
+                }
 
                 val totalCash = parseNumeric(summary["total_cash"])
                 val totalDebts = parseNumeric(summary["total_debts"])
