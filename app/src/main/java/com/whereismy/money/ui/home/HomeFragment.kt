@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.whereismy.money.R
 import com.whereismy.money.dashboard.DashboardSummaryCalculator
+import com.whereismy.money.data.DashboardSummary
 import com.whereismy.money.data.Debt
 import com.whereismy.money.data.FinancialAccount
 import com.whereismy.money.data.LedgerAccount
@@ -167,52 +168,29 @@ class HomeFragment : Fragment() {
             runCatching {
                 val workspaceId = activeWorkspaceId
                     ?: error(getString(R.string.workspace_required))
-                val accounts = supabaseClient.from("financial_accounts")
-                    .select()
-                    .decodeList<FinancialAccount>()
-                    .filter { it.workspace_id == workspaceId && it.is_active }
-                val debts = supabaseClient.from("debts")
-                    .select()
-                    .decodeList<Debt>()
-                    .filter { it.status != "cancelled" }
+                val summary = supabaseClient.postgrest.rpc(
+                    "get_workspace_dashboard",
+                    parameters = buildJsonObject {
+                        put("requested_workspace", workspaceId)
+                    },
+                )
+                val summaryRows = summary as? List<*> ?: error("Dashboard summary is unavailable")
+                val first = summaryRows.firstOrNull() as? Map<*, *> ?: error("Dashboard summary is empty")
                 val currency = supabaseClient.from("workspaces")
                     .select()
                     .decodeList<Workspace>()
                     .firstOrNull { it.id == workspaceId }
                     ?.base_currency
                     ?: "PHP"
-
-                val accountBalances = accounts.map { account ->
-                    val assetLedger = supabaseClient.from("ledger_accounts")
-                        .select()
-                        .decodeList<LedgerAccount>()
-                        .firstOrNull { it.financial_account_id == account.id && it.account_type == "asset" }
-                    val entries = if (assetLedger == null) emptyList() else {
-                        supabaseClient.from("ledger_entries")
-                            .select()
-                            .decodeList<LedgerEntry>()
-                            .filter { it.ledger_account_id == assetLedger.id }
-                    }
-                    val debit = entries.fold(BigDecimal.ZERO) { total, entry ->
-                        total + BigDecimal(entry.debit.jsonPrimitive.content)
-                    }
-                    val credit = entries.fold(BigDecimal.ZERO) { total, entry ->
-                        total + BigDecimal(entry.credit.jsonPrimitive.content)
-                    }
-                    DashboardSummaryCalculator.accountBalance(
-                        startingBalance = BigDecimal(account.starting_balance.jsonPrimitive.content),
-                        debit = debit,
-                        credit = credit,
-                    )
-                }
-                val totalCash = DashboardSummaryCalculator.totalCash(accountBalances)
-                val totalDebts = DashboardSummaryCalculator.totalDebts(
-                    debts.map { debt -> BigDecimal(debt.total_payable.jsonPrimitive.content) }
-                )
-                val netWorth = DashboardSummaryCalculator.netWorth(totalCash, totalDebts)
-                Triple(workspaceId, accounts, currency) to Triple(totalCash, totalDebts, netWorth)
-            }.onSuccess { (workspaceSummary, totals) ->
-                val (workspaceId, accounts, currency) = workspaceSummary
+                val accounts = supabaseClient.from("financial_accounts")
+                    .select()
+                    .decodeList<FinancialAccount>()
+                    .filter { it.workspace_id == workspaceId && it.is_active }
+                val totalCash = BigDecimal(first["total_cash"].toString())
+                val totalDebts = BigDecimal(first["total_debts"].toString())
+                val netWorth = BigDecimal(first["net_worth"].toString())
+                Triple(accounts, currency, Triple(totalCash, totalDebts, netWorth))
+            }.onSuccess { (accounts, currency, totals) ->
                 val (totalCash, totalDebts, netWorth) = totals
 
                 binding.accountList.text = if (accounts.isEmpty()) {
