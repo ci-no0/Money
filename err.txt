@@ -1,0 +1,73 @@
+=== Diagnostics Report ===
+Generated: 2026-09-19 22:51:56
+
+--- MainActivity.kt (16 errors, 0 warnings) ---
+Path: /storage/emulated/0/CodeOnTheGoProjects/Where is my Money/app/src/main/java/com/whereismy/money/MainActivity.kt
+
+  [ERROR] Line 25:9
+    Unresolved reference 'binding'.
+
+  [ERROR] Line 25:47
+    Unresolved reference 'layoutInflater'.
+
+  [ERROR] Line 26:24
+    Unresolved reference 'binding'.
+
+  [ERROR] Line 26:9
+    Unresolved reference 'setContentView'.
+
+  [ERROR] Line 28:29
+    Unresolved reference 'binding'.
+
+  [ERROR] Line 28:9
+    Unresolved reference 'setSupportActionBar'.
+
+  [ERROR] Line 30:9
+    Unresolved reference 'binding'.
+
+  [ERROR] Line 30:53
+    Cannot infer type for value parameter 'view'. Specify it explicitly.
+
+  [ERROR] Line 35:29
+    None of the following candidates is applicable:
+
+fun Activity.findNavController(viewId: Int): NavController:
+  Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun Activity.findNavController(viewId: Int): NavController
+
+fun View.findNavController(): NavController:
+  Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun View.findNavController(): NavController
+
+  [ERROR] Line 39:9
+    Unresolved reference 'appBarConfiguration'.
+
+  [ERROR] Line 42:16
+    Unresolved reference 'binding'.
+
+  [ERROR] Line 45:56
+    Unresolved reference 'appBarConfiguration'.
+
+  [ERROR] Line 46:9
+    Unresolved reference 'binding'.
+
+  [ERROR] Line 51:9
+    Unresolved reference 'menuInflater'.
+
+  [ERROR] Line 56:29
+    None of the following candidates is applicable:
+
+fun Activity.findNavController(viewId: Int): NavController:
+  Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun Activity.findNavController(viewId: Int): NavController
+
+fun View.findNavController(): NavController:
+  Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
+fun View.findNavController(): NavController
+
+  [ERROR] Line 57:41
+    Unresolved reference 'appBarConfiguration'.
+
+=== Summary ===
+Total: 16 errors, 0 warnings
+Files: 1

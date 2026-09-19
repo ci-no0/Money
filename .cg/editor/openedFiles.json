@@ -1,0 +1,21 @@
+{
+  "allFiles": [
+    {
+      "file": "/storage/emulated/0/CodeOnTheGoProjects/Where is my Money/app/src/main/java/com/whereismy/money/MainActivity.kt",
+      "selection": {
+        "end": {
+          "column": 45,
+          "index": 1286,
+          "line": 34
+        },
+        "start": {
+          "column": 28,
+          "index": 1269,
+          "line": 34
+        }
+      }
+    }
+  ],
+  "projectPath": "/storage/emulated/0/CodeOnTheGoProjects/Where is my Money",
+  "selectedFile": "/storage/emulated/0/CodeOnTheGoProjects/Where is my Money/app/src/main/java/com/whereismy/money/MainActivity.kt"
+}
