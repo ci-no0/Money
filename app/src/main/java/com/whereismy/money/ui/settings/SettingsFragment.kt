@@ -28,6 +28,7 @@ class SettingsFragment : Fragment() {
     private var allWorkspaces: List<Workspace> = emptyList()
     private var availablePermissions: List<Permission> = emptyList()
     private var permissionByRole: Map<String, List<String>> = emptyMap()
+    private var currentUserPermissionCodes: Set<String> = emptySet()
     private val permissionCheckboxes = mutableListOf<android.widget.CheckBox>()
 
     override fun onCreateView(
@@ -118,6 +119,31 @@ class SettingsFragment : Fragment() {
 
                 val currentMember = members.firstOrNull { it.user_id == currentUserId }
                 val currentRoleName = roles.firstOrNull { it.id == currentMember?.role_id }?.name ?: "No role assigned"
+                val memberPermissionRows = if (currentMember != null) {
+                    supabaseClient.from("member_permissions")
+                        .select()
+                        .decodeList<Map<String, String>>()
+                        .filter { it["member_id"] == currentMember.id }
+                } else {
+                    emptyList()
+                }
+                val directPermissions = memberPermissionRows
+                    .filter { it["effect"] == "allow" }
+                    .mapNotNull { it["permission_code"] }
+                    .toSet()
+                val deniedPermissions = memberPermissionRows
+                    .filter { it["effect"] == "deny" }
+                    .mapNotNull { it["permission_code"] }
+                    .toSet()
+                val currentRolePermissions = if (currentMember?.role_id != null) {
+                    permissionByRole[currentMember.role_id].orEmpty().toSet()
+                } else emptySet()
+                currentUserPermissionCodes = (directPermissions + currentRolePermissions) - deniedPermissions
+                val canManageUsers = currentUserPermissionCodes.contains("manage_users")
+                binding.settingsAssignRoleButton.isEnabled = canManageUsers
+                binding.settingsSavePermissionsButton.isEnabled = canManageUsers
+                binding.settingsPermissionRoleSpinner.isEnabled = canManageUsers
+                binding.settingsPermissionCheckboxContainer.isEnabled = canManageUsers
                 val roleCounts = roles.associateWith { role ->
                     members.count { it.role_id == role.id }
                 }
@@ -175,7 +201,11 @@ class SettingsFragment : Fragment() {
                 }
             }.onSuccess { details ->
                 binding.settingsDetails.text = details
-                binding.settingsStatus.text = "Workspace access loaded"
+                binding.settingsStatus.text = if (currentUserPermissionCodes.contains("manage_users")) {
+                    "Workspace access loaded"
+                } else {
+                    "Workspace access loaded — limited to read-only access"
+                }
             }.onFailure { error ->
                 binding.settingsDetails.text = "Workspace settings unavailable."
                 binding.settingsStatus.text = error.message ?: "Could not load workspace settings"

@@ -62,6 +62,24 @@ class HomeFragment : Fragment() {
                     .onFailure { showError(it) }
             }
         }
+        binding.workspaceSelectorSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selectedWorkspaceId = (binding.workspaceSelectorSpinner.adapter as? ArrayAdapter<*>)
+                    ?.getItem(position)?.let { item ->
+                        (item as? String)?.let { label ->
+                            val matches = (binding.workspaceSelectorSpinner.tag as? Map<String, String>)
+                                ?.entries?.firstOrNull { it.value == label }?.key
+                            matches
+                        }
+                    }
+                if (selectedWorkspaceId != null) {
+                    activeWorkspaceId = selectedWorkspaceId
+                    loadFinancialAccounts()
+                }
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) = Unit
+        }
         binding.createWorkspaceButton.setOnClickListener { createWorkspace() }
         binding.createAccountButton.setOnClickListener { createFinancialAccount() }
         showCurrentSession()
@@ -150,20 +168,32 @@ class HomeFragment : Fragment() {
                     .select()
                     .decodeList<Workspace>()
             }.onSuccess { workspaces ->
-                activeWorkspaceId = workspaces.firstOrNull()?.id
-                binding.workspaceList.text = if (workspaces.isEmpty()) {
-                    getString(R.string.no_workspaces)
-                } else {
-                    workspaces.joinToString(separator = "\n") { workspace ->
-                        "${workspace.name} (${workspace.workspace_type})"
-                    }
-                }
-                if (activeWorkspaceId == null) {
+                if (workspaces.isEmpty()) {
+                    activeWorkspaceId = null
+                    binding.workspaceList.text = getString(R.string.no_workspaces)
+                    binding.workspaceSelectorSpinner.adapter = null
                     binding.accountSection.visibility = View.GONE
-                } else {
-                    binding.accountSection.visibility = View.VISIBLE
-                    loadFinancialAccounts()
+                    return@onSuccess
                 }
+
+                activeWorkspaceId = workspaces.firstOrNull { it.id == activeWorkspaceId }?.id ?: workspaces.first().id
+                val workspaceLabels = workspaces.map { "${it.name} (${it.workspace_type})" }
+                val workspaceMap = workspaces.associateBy { it.id }
+                binding.workspaceSelectorSpinner.tag = workspaces.associate { it.id to "${it.name} (${it.workspace_type})" }
+                binding.workspaceSelectorSpinner.adapter = ArrayAdapter(
+                    requireContext(),
+                    android.R.layout.simple_spinner_dropdown_item,
+                    workspaceLabels,
+                )
+                val selectedIndex = workspaces.indexOfFirst { it.id == activeWorkspaceId }
+                if (selectedIndex >= 0) {
+                    binding.workspaceSelectorSpinner.setSelection(selectedIndex)
+                }
+                binding.workspaceList.text = workspaces.joinToString(separator = "\n") { workspace ->
+                    "${workspace.name} (${workspace.workspace_type})"
+                }
+                binding.accountSection.visibility = View.VISIBLE
+                loadFinancialAccounts()
             }.onFailure {
                 showError(it)
             }

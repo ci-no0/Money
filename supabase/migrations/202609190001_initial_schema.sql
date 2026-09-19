@@ -310,6 +310,8 @@ as $$
 declare
     new_workspace_id uuid;
     owner_role_id uuid;
+    admin_role_id uuid;
+    member_role_id uuid;
 begin
     if auth.uid() is null then
         raise exception 'Authentication is required';
@@ -327,11 +329,47 @@ begin
     values (new_workspace_id, 'Owner', true)
     returning id into owner_role_id;
 
+    insert into public.roles (workspace_id, name, is_admin)
+    values (new_workspace_id, 'Admin', true)
+    returning id into admin_role_id;
+
+    insert into public.roles (workspace_id, name, is_admin)
+    values (new_workspace_id, 'Member', false)
+    returning id into member_role_id;
+
     insert into public.workspace_members (workspace_id, user_id, role_id)
     values (new_workspace_id, auth.uid(), owner_role_id);
 
     insert into public.role_permissions (role_id, permission_code)
     select owner_role_id, code from public.permissions;
+
+    insert into public.role_permissions (role_id, permission_code)
+    select admin_role_id, code from public.permissions
+    where code in (
+        'view_workspace',
+        'manage_users',
+        'view_accounts',
+        'manage_accounts',
+        'view_ledger',
+        'create_transactions',
+        'edit_transactions',
+        'delete_transactions',
+        'view_debts',
+        'manage_debts',
+        'manage_reports',
+        'manage_attachments'
+    );
+
+    insert into public.role_permissions (role_id, permission_code)
+    select member_role_id, code from public.permissions
+    where code in (
+        'view_workspace',
+        'view_accounts',
+        'view_ledger',
+        'create_transactions',
+        'view_debts',
+        'manage_reports'
+    );
 
     return new_workspace_id;
 end;
